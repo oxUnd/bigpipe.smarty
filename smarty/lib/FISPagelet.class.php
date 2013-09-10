@@ -245,6 +245,44 @@ class FISPagelet {
         return $ret;
     }
 
+    /**
+     * 渲染静态资源
+     * @param $html
+     * @param $arr
+     * @param bool $clean_hook
+     * @return mixed
+     */
+    static public function renderStatic($html, $arr, $clean_hook = false) {
+        if (!empty($arr)) {
+            $code = '';
+            if (!empty($arr['js'])) {
+                //@TODO
+                $code = '<script type="text/javascript" src="'
+                    . implode('"></script><script type="text/javascript" src="', $arr['js'])
+                    . '"></script>';
+            }
+            if (!empty($arr['script'])) {
+                $code .= '<script type="text/javascript">'. PHP_EOL;
+                foreach ($arr['script'] as $inner_script) {
+                    $code .= 'try {'.$inner_script.'} catch(e) {}'. PHP_EOL;
+                }
+                $code .= '</script>';
+            }
+            $html = str_replace(self::JS_SCRIPT_HOOK, $code . self::JS_SCRIPT_HOOK, $html);
+            if (!empty($arr['css'])) {
+                $code = '<link rel="stylesheet" type="text/css" href="'
+                    . implode('" /><link rel="stylesheet" type="text/css" href="', $arr['css'])
+                    . '" />';
+                //替换
+                $html = str_replace(self::CSS_LINKS_HOOK, $code . self::CSS_LINKS_HOOK, $html);
+            }
+        }
+        if ($clean_hook) {
+            $html = str_replace(array(self::CSS_LINKS_HOOK, self::JS_SCRIPT_HOOK), '', $html);
+        }
+        return $html;
+    }
+
     static public function display($html) {
         $pagelets = self::$_pagelets;
         $mode = self::$mode;
@@ -268,58 +306,12 @@ class FISPagelet {
                 }
             }
         }
-        if (!empty(self::$external_widget_static)) {
-            $code = '';
-            if (!empty(self::$external_widget_static['js'])) {
-                //@TODO
-                $code = '<script type="text/javascript" src="'
-                    . implode('"></script><script type="text/javascript" src="', self::$external_widget_static['js'])
-                    . '"></script>';
-            }
-            if (!empty(self::$external_widget_static['script'])) {
-                $code .= '<script type="text/javascript">'. PHP_EOL;
-                foreach (self::$external_widget_static['script'] as $inner_script) {
-                    $code .= 'try {'.$inner_script.'} catch(e) {}'. PHP_EOL;
-                }
-                $code .= '</script>';
-            }
-            $html = str_replace(self::JS_SCRIPT_HOOK, $code . self::JS_SCRIPT_HOOK, $html);
-            if (!empty(self::$external_widget_static['css'])) {
-                $code = '<link rel="stylesheet" type="text/css" href="'
-                    . implode('" /><link rel="stylesheet" type="text/css" href="', self::$external_widget_static['css'])
-                    . '" />';
-                //替换
-                $html = str_replace(self::CSS_LINKS_HOOK, $code . self::CSS_LINKS_HOOK, $html);
-            }
-        }
-
+        //渲染widget以外静态文件
+        $html = self::renderStatic($html, self::$external_widget_static);
         //tpl信息没有必要打到页面
         switch($mode) {
             case self::MODE_NOSCRIPT:
-                $code = '';
-                if (!empty($res['js'])) {
-                    //@TODO
-                    $code = '<script type="text/javascript" src="'
-                        . implode('"></script><script type="text/javascript" src="', $res['js'])
-                        . '"></script>';
-                }
-                if (!empty($res['script'])) {
-                    $code .= '<script type="text/javascript">'. PHP_EOL;
-                    foreach ($res['script'] as $inner_script) {
-                        $code .= 'try {'.$inner_script.'} catch(e) {}'. PHP_EOL;
-                    }
-                    $code .= '</script>';
-                }
-                $html = str_replace(self::JS_SCRIPT_HOOK, $code, $html);
-                if (!empty($res['css'])) {
-                    $code = '<link rel="stylesheet" type="text/css" href="'
-                          . implode('" /><link rel="stylesheet" type="text/css" href="', $res['css'])
-                          . '" />';
-                    //替换
-                    $html = str_replace(self::CSS_LINKS_HOOK, $code, $html);
-                }
-                //剔除HOOK注释
-                $html = str_replace(array(self::CSS_LINKS_HOOK, self::JS_SCRIPT_HOOK), '', $html);
+                $html = self::renderStatic($html, $res, true);
                 break;
             case self::MODE_QUICKLING:
                 header('Content-Type: text/json;');
