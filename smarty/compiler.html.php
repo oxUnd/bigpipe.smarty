@@ -1,0 +1,26 @@
+<?php
+function smarty_compiler_html($arrParams,  $smarty){
+    $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
+    $strFramework = $arrParams['framework'];
+    unset($arrParams['framework']);
+    $strAttr = '';
+    $strCode = '<?php ';
+    $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
+    $strCode .= 'FISPagelet::init();';
+    if (isset($strFramework)) {
+        //$strCode .= 'FISResource::setFramework(FISResource::getUri('.$strFramework.', $_smarty_tpl->smarty));';
+    }
+    $strCode .= ' ?>';
+    foreach ($arrParams as $_key => $_value) {
+        $strAttr .= ' ' . $_key . '="<?php echo ' . $_value . ';?>"';
+    }
+    return $strCode . "<html{$strAttr}>";
+}
+
+function smarty_compiler_htmlclose($arrParams,  $smarty){
+    $strCode = '<?php ';
+    $strCode .= '$_smarty_tpl->registerFilter(\'output\', array(\'FISPagelet\', \'renderResponse\'));';
+    $strCode .= '?>';
+    $strCode .= '</html>';
+    return $strCode;
+}
