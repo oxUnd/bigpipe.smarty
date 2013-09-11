@@ -100,9 +100,9 @@ class FISPagelet {
     }
 
     static public function addScript($code) {
-        if(self::$_context['hit']){
-            FISResource::addScriptPool($code);
-        }
+        //if(self::$_context['hit']){
+        FISResource::addScriptPool($code);
+        //}
     }
 
     public static function cssHook() {
@@ -155,7 +155,7 @@ class FISPagelet {
         }
 
         if (!$has_parent) {
-            self::$external_widget_static = array_merge(
+            self::$external_widget_static = array_merge_recursive(
                 self::$external_widget_static,
                 FISResource::getArrStaticCollection()
             );
@@ -296,7 +296,6 @@ class FISPagelet {
             foreach ($res as $key => $val) {
                 if (isset($item[$key]) && is_array($item[$key])) {
                     $arr = array_merge($res[$key], $item[$key]);
-                    debug($arr);
                     if (empty($arr)) {
                         unset($res[$key]);
                     } else {

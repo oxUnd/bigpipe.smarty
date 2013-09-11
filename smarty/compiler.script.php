@@ -23,7 +23,7 @@ function smarty_compiler_scriptclose($params,  $smarty){
     $strCode .=             'FISPagelet::$arrEmbeded[] = FISPagelet::$cp;';
     $strCode .=         '}';
     $strCode .=     '} else {';
-    $strCode .=         'FISPagelet::addScriptPool($script);';
+    $strCode .=         'FISPagelet::addScript($script);';
     $strCode .=     '}';
     $strCode .= '}';
     $strCode .= 'FISPagelet::$cp = null;?>';
