@@ -1,10 +1,11 @@
-{%html%}
+{%html framework="pagelet:static/mod.js"%}
     {%head%}
         <title>test</title>
+        <script type="text/javascript" src="/static/BigPipe.js"></script>
     {%/head%}
     {%body%}
         {%script%}
-        alert('test');
+        require.async('/widget/head/head.js');
         {%/script%}
         {%require name="pagelet:page/index.css"%}
         {%widget name="pagelet:widget/first/first.tpl"%}

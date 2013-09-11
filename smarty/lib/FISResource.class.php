@@ -27,16 +27,70 @@ class FISResource {
         self::$arrScriptPool = array();
     }
 
+    //设置framewok mod.js
+    public static function setFramework($strFramework) {
+        self::$framework = $strFramework;
+    }
+
+    public static function getFramework() {
+        return self::$framework;
+    }
+
     public static function addScriptPool($code) {
         self::$arrScriptPool[] = $code;
     }
     public static function getArrStaticCollection() {
         //内嵌脚本
-        self::$arrStaticCollection['script'] = self::$arrScriptPool;
+        if (self::$arrScriptPool) {
+            self::$arrStaticCollection['script'] = self::$arrScriptPool;
+        }
         //异步脚本
-        self::$arrStaticCollection['async'] = self::$arrRequireAsyncCollection;
+        if (self::$arrRequireAsyncCollection) {
+            self::$arrStaticCollection['async'] = self::getResourceMap();
+        }
         unset(self::$arrStaticCollection['tpl']);
         return self::$arrStaticCollection;
+    }
+
+    //获取异步js资源集合，变为json格式的resourcemap
+    public static function getResourceMap() {
+        $ret = '';
+        $arrResourceMap = array();
+        if (isset(self::$arrRequireAsyncCollection['res'])) {
+            foreach (self::$arrRequireAsyncCollection['res'] as $id => $arrRes) {
+                $deps = array();
+                if (!empty($arrRes['deps'])) {
+                    foreach ($arrRes['deps'] as $strName) {
+                        if (preg_match('/\.js$/i', $strName)) {
+                            $deps[] = $strName;
+                        }
+                    }
+                }
+
+                $arrResourceMap['res'][$id] = array(
+                    'url' => $arrRes['uri'],
+                );
+
+                if (!empty($arrRes['pkg'])) {
+                    $arrResourceMap['res'][$id]['pkg'] = $arrRes['pkg'];
+                }
+
+                if (!empty($deps)) {
+                    $arrResourceMap['res'][$id]['deps'] = $deps;
+                }
+            }
+        }
+        if (isset(self::$arrRequireAsyncCollection['pkg'])) {
+            foreach (self::$arrRequireAsyncCollection['pkg'] as $id => $arrRes) {
+                $arrResourceMap['pkg'][$id] = array(
+                    'url'=> $arrRes['uri']
+                );
+            }
+        }
+        if (!empty($arrResourceMap)) {
+            $ret = $arrResourceMap;
+        }
+        return  $ret;
     }
 
     //获取命名空间的map.json

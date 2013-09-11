@@ -255,16 +255,25 @@ class FISPagelet {
     static public function renderStatic($html, $arr, $clean_hook = false) {
         if (!empty($arr)) {
             $code = '';
-            if (!empty($arr['js'])) {
-                //@TODO
-                $code = '<script type="text/javascript" src="'
-                    . implode('"></script><script type="text/javascript" src="', $arr['js'])
-                    . '"></script>';
+            $resource_map = FISResource::getResourceMap();
+            $loadModJs = (FISResource::getFramework() && ($arr['js'] || $resource_map));
+            if ($loadModJs) {
+                foreach ($arr['js'] as $js) {
+                    $code .= '<script type="text/javascript" src="' . $js . '"></script>';
+                    if ($js == FISResource::getFramework()) {
+                        if ($resource_map) {
+                            $code .= '<script type="text/javascript">';
+                            $code .= 'require.resourceMap('.json_encode($resource_map).');';
+                            $code .= '</script>';
+                        }
+                    }
+                }
             }
+
             if (!empty($arr['script'])) {
                 $code .= '<script type="text/javascript">'. PHP_EOL;
                 foreach ($arr['script'] as $inner_script) {
-                    $code .= 'try {'.$inner_script.'} catch(e) {}'. PHP_EOL;
+                    $code .= '!function(){try {'.$inner_script.'} catch(e) {}}();'. PHP_EOL;
                 }
                 $code .= '</script>';
             }
@@ -295,7 +304,7 @@ class FISPagelet {
         foreach (self::$inner_widget[$mode] as $item) {
             foreach ($res as $key => $val) {
                 if (isset($item[$key]) && is_array($item[$key])) {
-                    $arr = array_merge($res[$key], $item[$key]);
+                    $arr = array_merge_recursive($res[$key], $item[$key]);
                     if (empty($arr)) {
                         unset($res[$key]);
                     } else {
@@ -305,11 +314,11 @@ class FISPagelet {
                 }
             }
         }
-        //渲染widget以外静态文件
-        $html = self::renderStatic($html, self::$external_widget_static);
         //tpl信息没有必要打到页面
         switch($mode) {
             case self::MODE_NOSCRIPT:
+                //渲染widget以外静态文件
+                $html = self::renderStatic($html, self::$external_widget_static);
                 $html = self::renderStatic($html, $res, true);
                 break;
             case self::MODE_QUICKLING:
@@ -322,6 +331,8 @@ class FISPagelet {
                 break;
             case self::MODE_BIGPIPE:
                 $html = str_replace(array(self::CSS_LINKS_HOOK, self::JS_SCRIPT_HOOK), '', $html);
+                //合并
+                $res = array_merge_recursive($res, self::$external_widget_static);
                 $html .= '<script type="text/javascript">';
                 $html .= "\n";
                 if(isset($res['script'])){
@@ -331,6 +342,7 @@ class FISPagelet {
                         $html .= implode("\n", $res['script']);
                     }
                     $html .= '});';
+                    unset($res['script']);
                 }
                 $html .= '</script>';
                 $html .= "\n";

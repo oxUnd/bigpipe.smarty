@@ -6,10 +6,10 @@ function smarty_compiler_html($arrParams,  $smarty){
     $strAttr = '';
     $strCode = '<?php ';
     $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
-    $strCode .= 'FISPagelet::init();';
     if (isset($strFramework)) {
-        //$strCode .= 'FISResource::setFramework(FISResource::getUri('.$strFramework.', $_smarty_tpl->smarty));';
+        $strCode .= 'FISResource::setFramework(FISResource::load('.$strFramework.', $_smarty_tpl->smarty));';
     }
+    $strCode .= 'FISPagelet::init();';
     $strCode .= ' ?>';
     foreach ($arrParams as $_key => $_value) {
         $strAttr .= ' ' . $_key . '="<?php echo ' . $_value . ';?>"';
