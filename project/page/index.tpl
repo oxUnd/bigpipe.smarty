@@ -1,6 +1,7 @@
 {%html framework="pagelet:static/mod.js"%}
     {%head%}
         <title>test</title>
+        <script type="text/javascript" src="/static/lazyload.js"></script>
         <script type="text/javascript" src="/static/BigPipe.js"></script>
     {%/head%}
     {%body%}
