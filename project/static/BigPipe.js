@@ -63,7 +63,6 @@ var BigPipe = function() {
         if (rm.async) {
             require.resourceMap(rm.async);
         }
-
         if (rm.js) {
             LazyLoad.js(rm.js, function() {
                 rm.script && window.eval(rm.script);

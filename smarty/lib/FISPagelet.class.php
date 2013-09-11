@@ -161,10 +161,7 @@ class FISPagelet {
             );
             //reset收集静态资源列表
             FISResource::reset();
-            //reset
-            self::$_widget_html = array();
         }
-
         $id = empty($id) ? '__elm_' . self::$_session_id ++ : $id;
         //widget是否命中，默认命中
         $hit = true;
@@ -314,15 +311,27 @@ class FISPagelet {
                 }
             }
         }
+        //if empty, unset it!
+        foreach ($res as $key => $val) {
+            if (empty($val)) {
+                unset($res[$key]);
+            }
+        }
         //tpl信息没有必要打到页面
         switch($mode) {
             case self::MODE_NOSCRIPT:
                 //渲染widget以外静态文件
-                $html = self::renderStatic($html, self::$external_widget_static);
-                $html = self::renderStatic($html, $res, true);
+                $html = self::renderStatic(
+                    $html,
+                    array_merge_recursive($res, self::$external_widget_static),
+                    true
+                );
                 break;
             case self::MODE_QUICKLING:
                 header('Content-Type: text/json;');
+                if ($res['script']) {
+                    $res['script'] = implode("\n", $res['script']);
+                }
                 $html = json_encode(array(
                     'title' => '',
                     'pagelets' => $pagelets,
