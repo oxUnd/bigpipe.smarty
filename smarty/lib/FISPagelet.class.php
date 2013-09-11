@@ -344,9 +344,6 @@ class FISPagelet {
                         $pagelet['html']
                     );
                     unset($pagelet['html']);
-                    if (!$pagelet['script']) {
-                        unset($pagelet['script']);
-                    }
                     $pagelet['html_id'] = $id;
                     $html .= ' --></code>';
                     $html .= "\n";
@@ -364,7 +361,7 @@ class FISPagelet {
                 $html .= '<script type="text/javascript">';
                 $html .= "\n";
                 $html .= 'BigPipe.register(';
-                if(empty(self::$inner_widget[$mode])){
+                if(empty($res)){
                     $html .= '{}';
                 } else {
                     $html .= json_encode($res);
