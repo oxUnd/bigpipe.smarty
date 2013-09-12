@@ -321,9 +321,11 @@ class FISPagelet {
         switch($mode) {
             case self::MODE_NOSCRIPT:
                 //渲染widget以外静态文件
+                $html = self::renderStatic($html, self::$external_widget_static);
                 $html = self::renderStatic(
                     $html,
-                    array_merge_recursive($res, self::$external_widget_static),
+                    $res,
+                    //array_merge_recursive($res, self::$external_widget_static),
                     true
                 );
                 break;
