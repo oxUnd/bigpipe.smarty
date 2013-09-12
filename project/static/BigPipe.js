@@ -80,7 +80,7 @@ var BigPipe = function() {
     }
 
 
-    function load(arg) {
+    function asyncLoad(arg) {
         if (!(arg instanceof Array)) {
             arg = [arg];
         }
@@ -90,9 +90,10 @@ var BigPipe = function() {
             if (!obj.id) {
                 throw new Error('missing pagelet id');
             }
-            arr.push('pagelets[]='+obj.id);
+            arr.push('pagelets[]=' + obj.id);
         }
-        var url = location.href + (location.search? '&' : '?') + arr.join('&');
+
+        var url = location.href.split('#')[0] + (location.search? '&' : '?') + arr.join('&');
 
 //test ajax no debug's `mode=`
 url=url.replace(/mode=\d*&/, '');
@@ -104,10 +105,6 @@ url=url.replace(/mode=\d*&/, '');
 
             process(data);
         });
-    }
-
-    function asyncLoad(arg) {
-        load(arg);
     }
 
     return {

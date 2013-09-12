@@ -234,14 +234,21 @@ class FISPagelet {
             } else {
                 self::$_context = null;
             }
-        }
-        $has_parent = !empty(self::$_context);
-        //收集
-        //end
-        if (!$has_parent) {
-            self::$inner_widget[self::$widget_mode][] = FISResource::getArrStaticCollection();
+            $has_parent = !empty(self::$_context);
+            //收集
+            //end
+            if (!$has_parent) {
+                self::$inner_widget[self::$widget_mode][] = FISResource::getArrStaticCollection();
+                FISResource::reset();
+            }
+        } else {
+            self::$external_widget_static = array_merge_recursive(
+                self::$external_widget_static,
+                FISResource::getArrStaticCollection()
+            );
             FISResource::reset();
         }
+
         echo '</div>';
         return $ret;
     }
@@ -351,9 +358,9 @@ class FISPagelet {
             case self::MODE_NOSCRIPT:
                 //渲染widget以外静态文件
                 $all_static = self::array_unique_recursive(array_merge_recursive(
-                    FISResource::getArrStaticCollection(),  //如果没有widget，资源收集
                     self::$external_widget_static,          //有widget，但是在widget以外的资源
-                    $res                                    //widget中使用到的资源
+                    FISResource::getArrStaticCollection()  //如果没有widget，资源收集
+                    //$res                                    //widget中使用到的资源
                 ));
                 $html = self::renderStatic(
                     $html,
