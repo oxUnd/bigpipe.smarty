@@ -288,7 +288,6 @@ class FISPagelet {
         }
         return $html;
     }
-
     static public function display($html) {
         $pagelets = self::$_pagelets;
         $mode = self::$mode;
@@ -317,6 +316,11 @@ class FISPagelet {
                 unset($res[$key]);
             }
         }
+        //收集widget以外的静态资源
+        self::$external_widget_static = array_merge_recursive(
+            FISResource::getArrStaticCollection(),
+            self::$external_widget_static
+        );
         //tpl信息没有必要打到页面
         switch($mode) {
             case self::MODE_NOSCRIPT:
@@ -325,7 +329,6 @@ class FISPagelet {
                 $html = self::renderStatic(
                     $html,
                     $res,
-                    //array_merge_recursive($res, self::$external_widget_static),
                     true
                 );
                 break;
