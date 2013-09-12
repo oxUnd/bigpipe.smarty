@@ -80,12 +80,19 @@ var BigPipe = function() {
     }
 
 
-    function load(obj) {
-        if (!obj.id) {
-            throw new Error('missing pagelet id');
+    function load(arg) {
+        if (!(arg instanceof Array)) {
+            arg = [arg];
         }
-
-        var url = location.href + (location.search? '&' : '?') + 'pagelets[]=' + obj.id;
+        var obj, arr = [];
+        for (var i = arg.length - 1; i >= 0; i--) {
+            obj = arg[i];
+            if (!obj.id) {
+                throw new Error('missing pagelet id');
+            }
+            arr.push('pagelets[]='+obj.id);
+        }
+        var url = location.href + (location.search? '&' : '?') + arr.join('&');
 
 //test ajax no debug's `mode=`
 url=url.replace(/mode=\d*&/, '');
@@ -100,14 +107,7 @@ url=url.replace(/mode=\d*&/, '');
     }
 
     function asyncLoad(arg) {
-        if (arg instanceof Array) {
-            for(var i = 0, n = arg.length; i < n; i++) {
-                load(arg[i]);
-            }
-        }
-        else {
-            load(arg);
-        }
+        load(arg);
     }
 
     return {
