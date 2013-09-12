@@ -248,6 +248,7 @@ class FISPagelet {
 
     //recursive unique
     static public function array_unique_recursive($array) {
+        if (!is_array($array) || empty($array)) return $array;
         $array = array_unique($array, SORT_REGULAR);
         foreach ($array as $key => $c_array) {
             if (is_array($c_array)) {
@@ -320,10 +321,13 @@ class FISPagelet {
             'script' => array(),
             'async' => array(),
         );
+
+        //{{{
         foreach (self::$inner_widget[$mode] as $item) {
             foreach ($res as $key => $val) {
                 if (isset($item[$key]) && is_array($item[$key])) {
                     $arr = array_merge_recursive($res[$key], $item[$key]);
+                    $arr = self::array_unique_recursive($arr);
                     if (empty($arr)) {
                         unset($res[$key]);
                     } else {
@@ -339,16 +343,18 @@ class FISPagelet {
                 unset($res[$key]);
             }
         }
-        $all_static = self::array_unique_recursive(array_merge_recursive(
-            FISResource::getArrStaticCollection(),  //如果没有widget，资源收集
-            self::$external_widget_static,          //有widget，但是在widget以外的资源
-            $res                                    //widget中使用到的资源
-        ));
-        debug($all_static);
+
+        //}}}
+
         //tpl信息没有必要打到页面
         switch($mode) {
             case self::MODE_NOSCRIPT:
                 //渲染widget以外静态文件
+                $all_static = self::array_unique_recursive(array_merge_recursive(
+                    FISResource::getArrStaticCollection(),  //如果没有widget，资源收集
+                    self::$external_widget_static,          //有widget，但是在widget以外的资源
+                    $res                                    //widget中使用到的资源
+                ));
                 $html = self::renderStatic(
                     $html,
                     $all_static,
@@ -367,8 +373,16 @@ class FISPagelet {
                 ));
                 break;
             case self::MODE_BIGPIPE:
-                $html = str_replace(array(self::CSS_LINKS_HOOK, self::JS_SCRIPT_HOOK), '', $html);
-                $res = $all_static;
+                $html = self::renderStatic(
+                    $html,
+                    self::array_unique_recursive(
+                        array_merge_recursive(
+                            FISResource::getArrStaticCollection(),
+                            self::$external_widget_static
+                        )
+                    ),
+                    true
+                );
                 $html .= '<script type="text/javascript">';
                 $html .= "\n";
                 if(isset($res['script'])){
