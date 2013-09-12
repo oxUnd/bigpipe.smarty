@@ -293,7 +293,7 @@ class FISPagelet {
             if (!empty($arr['script'])) {
                 $code .= '<script type="text/javascript">'. PHP_EOL;
                 foreach ($arr['script'] as $inner_script) {
-                    $code .= '!function(){try {'.$inner_script.'} catch(e) {}}();'. PHP_EOL;
+                    $code .= '!function(){'.$inner_script.'}();'. PHP_EOL;
                 }
                 $code .= '</script>';
             }
@@ -360,7 +360,6 @@ class FISPagelet {
                 $all_static = self::array_unique_recursive(array_merge_recursive(
                     self::$external_widget_static,          //有widget，但是在widget以外的资源
                     FISResource::getArrStaticCollection()  //如果没有widget，资源收集
-                    //$res                                    //widget中使用到的资源
                 ));
                 $html = self::renderStatic(
                     $html,

@@ -76,6 +76,12 @@ var BigPipe = function() {
             LazyLoad.css(rm.css);
         }
 
+        if (rm.style) {
+            var dom = document.createElement('style');
+            dom.innerHTML = rm.style;
+            document.getElementsByTagName('head')[0].appendChild(dom);
+        }
+
         render(data.pagelets);
     }
 
