@@ -19,11 +19,11 @@ function smarty_compiler_styleclose($params,  $smarty){
     $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
     $strCode .=     'if(FISPagelet::$cp){';
     $strCode .=         'if (!in_array(FISPagelet::$cp, FISPagelet::$arrEmbeded)){';
-    $strCode .=             'echo "<style type=\'text/css\'>" . $style . "</style>";';
+    $strCode .=             'FISPagelet::addStyle($style);';
     $strCode .=             'FISPagelet::$arrEmbeded[] = FISPagelet::$cp;';
     $strCode .=         '}';
     $strCode .=     '} else {';
-    $strCode .=         'echo "<style type=\'text/css\'>" . $style . "</style>";';
+    $strCode .=         'FISPagelet::addStyle($style);';
     $strCode .=     '}';
     $strCode .= '}';
     $strCode .= 'FISPagelet::$cp = false;?>';

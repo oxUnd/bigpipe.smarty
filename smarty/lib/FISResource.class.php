@@ -17,7 +17,7 @@ class FISResource {
     //收集require.async组件
     private static $arrRequireAsyncCollection = array();
     private static $arrScriptPool = array();
-
+    private static $arrStylePool = array();
     public static $framework = null;
 
     public static function reset() {
@@ -25,6 +25,7 @@ class FISResource {
         self::$arrRequireAsyncCollection = array();
         self::$arrLoaded = array();
         self::$arrScriptPool = array();
+        self::$arrStylePool = array();
     }
 
     //设置framewok mod.js
@@ -39,11 +40,21 @@ class FISResource {
     public static function addScriptPool($code) {
         self::$arrScriptPool[] = $code;
     }
+
+    public static function addStylePool($code) {
+        self::$arrStylePool[] = $code;
+    }
+
     public static function getArrStaticCollection() {
         //内嵌脚本
         if (self::$arrScriptPool) {
             self::$arrStaticCollection['script'] = self::$arrScriptPool;
         }
+
+        if (self::$arrStylePool) {
+            self::$arrStaticCollection['style'] = self::$arrStylePool;
+        }
+
         //异步脚本
         if (self::$arrRequireAsyncCollection) {
             self::$arrStaticCollection['async'] = self::getResourceMap();

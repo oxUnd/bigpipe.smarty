@@ -105,6 +105,10 @@ class FISPagelet {
         //}
     }
 
+    static public function addStyle($code) {
+        FISResource::addStylePool($code);
+    }
+
     public static function cssHook() {
         return self::CSS_LINKS_HOOK;
     }
@@ -275,13 +279,21 @@ class FISPagelet {
                 $code .= '</script>';
             }
             $html = str_replace(self::JS_SCRIPT_HOOK, $code . self::JS_SCRIPT_HOOK, $html);
+            $code = '';
             if (!empty($arr['css'])) {
                 $code = '<link rel="stylesheet" type="text/css" href="'
                     . implode('" /><link rel="stylesheet" type="text/css" href="', $arr['css'])
                     . '" />';
-                //替换
-                $html = str_replace(self::CSS_LINKS_HOOK, $code . self::CSS_LINKS_HOOK, $html);
             }
+            if (!empty($arr['style'])) {
+                $code .= '<style type="text/css">';
+                foreach ($arr['style'] as $inner_style) {
+                    $code .= $inner_style;
+                }
+                $code .= '</style>';
+            }
+            //替换
+            $html = str_replace(self::CSS_LINKS_HOOK, $code . self::CSS_LINKS_HOOK, $html);
         }
         if ($clean_hook) {
             $html = str_replace(array(self::CSS_LINKS_HOOK, self::JS_SCRIPT_HOOK), '', $html);
@@ -321,6 +333,7 @@ class FISPagelet {
             FISResource::getArrStaticCollection(),
             self::$external_widget_static
         );
+
         //tpl信息没有必要打到页面
         switch($mode) {
             case self::MODE_NOSCRIPT:
