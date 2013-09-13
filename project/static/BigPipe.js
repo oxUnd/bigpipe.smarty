@@ -63,26 +63,41 @@ var BigPipe = function() {
         if (rm.async) {
             require.resourceMap(rm.async);
         }
-        if (rm.js) {
-            LazyLoad.js(rm.js, function() {
-                rm.script && window.eval(rm.script);
-            });
-        }
-        else {
-            rm.script && window.eval(rm.script);
-        }
+
 
         if (rm.css) {
-            LazyLoad.css(rm.css);
+            LazyLoad.css(rm.css, function() {
+                if (rm.style) {
+                    var dom = document.createElement('style');
+                    dom.innerHTML = rm.style;
+                    document.getElementsByTagName('head')[0].appendChild(dom);
+                }
+                render(data.pagelets);
+                if (rm.js) {
+                    LazyLoad.js(rm.js, function() {
+                        rm.script && window.eval(rm.script);
+                    });
+                }
+                else {
+                    rm.script && window.eval(rm.script);
+                }
+            });
+        } else {
+            if (rm.style) {
+                var dom = document.createElement('style');
+                dom.innerHTML = rm.style;
+                document.getElementsByTagName('head')[0].appendChild(dom);
+            }
+            render(data.pagelets);
+            if (rm.js) {
+                LazyLoad.js(rm.js, function() {
+                    rm.script && window.eval(rm.script);
+                });
+            }
+            else {
+                rm.script && window.eval(rm.script);
+            }
         }
-
-        if (rm.style) {
-            var dom = document.createElement('style');
-            dom.innerHTML = rm.style;
-            document.getElementsByTagName('head')[0].appendChild(dom);
-        }
-
-        render(data.pagelets);
     }
 
 
@@ -99,7 +114,7 @@ var BigPipe = function() {
             arr.push('pagelets[]=' + obj.id);
         }
 
-        var url = location.href.split('#')[0] + (location.search? '&' : '?') + arr.join('&');
+        var url = location.href.split('#')[0] + (location.search? '&' : '?') + arr.join('&') + '&force_mode=1';
 
         //test ajax no debug's `mode=`
         url=url.replace(/mode=\d*&/, '');

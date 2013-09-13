@@ -62,15 +62,17 @@ class FISPagelet {
     static public $arrEmbeded = array();
 
     static public function init() {
-        $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
-            && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
-        if ($is_ajax) {
-            self::setMode(self::MODE_QUICKLING);
-        } else {
+        if ($_GET['force_mode']) {
             self::setMode(self::MODE_NOSCRIPT);
+        } else {
+            $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
+                && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+            if ($is_ajax) {
+                self::setMode(self::MODE_QUICKLING);
+            } else {
+                self::setMode(self::MODE_NOSCRIPT);
+            }
         }
-        //test
-        //self::setMode($_GET['mode']);
         self::setFilter($_GET['pagelets']);
     }
 
@@ -94,13 +96,15 @@ class FISPagelet {
     }
 
     static public function addScript($code) {
-        //if(self::$_context['hit']){
-        FISResource::addScriptPool($code);
-        //}
+        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
+            FISResource::addScriptPool($code);
+        }
     }
 
     static public function addStyle($code) {
-        FISResource::addStylePool($code);
+        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
+            FISResource::addStylePool($code);
+        }
     }
 
     public static function cssHook() {
@@ -112,7 +116,9 @@ class FISPagelet {
     }
 
     static function load($str_name, $smarty) {
-        FISResource::load($str_name, $smarty);
+        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
+            FISResource::load($str_name, $smarty);
+        }
     }
 
     static private function _parseMode($str_mode) {
@@ -152,14 +158,6 @@ class FISPagelet {
             self::$widget_mode = self::_parseMode($mode);
         }
 
-        if (!$has_parent) {
-            self::$external_widget_static = array_merge_recursive(
-                self::$external_widget_static,
-                FISResource::getArrStaticCollection()
-            );
-            //reset收集静态资源列表
-            FISResource::reset();
-        }
         $id = empty($id) ? '__elm_' . self::$_session_id ++ : $id;
         //widget是否命中，默认命中
         $hit = true;
@@ -181,6 +179,10 @@ class FISPagelet {
                         .'</textarea>';
                 }
             case self::MODE_BIGPIPE:
+                $has_parent = !empty(self::$_context);
+                if (!$has_parent) {
+                    FISResource::widgetStart();
+                }
                 $context = array( 'id' => $id );
                 $parent = self::$_context;
                 if(!empty($parent)){
@@ -213,7 +215,7 @@ class FISPagelet {
             $html = ob_get_clean();
             $pagelet = self::$_context;
 
-            if($pagelet['hit'] && self::$mode == self::$widget_mode){
+            if($pagelet['hit']){
                 unset($pagelet['hit']);
                 $pagelet['html'] = $html;
                 self::$_pagelets[] = &$pagelet;
@@ -232,17 +234,10 @@ class FISPagelet {
             //收集
             //end
             if (!$has_parent) {
-                self::$inner_widget[self::$widget_mode][] = FISResource::getArrStaticCollection();
-                FISResource::reset();
+                self::$inner_widget[self::$widget_mode][] = FISResource::widgetEnd();
+                //file_put_contents('/tmp/fis.log', var_export(FISResource::widgetEnd(), true), FILE_APPEND);
             }
-        } else {
-            self::$external_widget_static = array_merge_recursive(
-                self::$external_widget_static,
-                FISResource::getArrStaticCollection()
-            );
-            FISResource::reset();
         }
-
         echo '</div>';
         return $ret;
     }
@@ -315,7 +310,7 @@ class FISPagelet {
     }
     static public function display($html) {
         $pagelets = self::$_pagelets;
-        $mode = self::$mode;
+        $mode = isset($_GET['force_mode']) ? $_GET['force_mode'] : self::$mode;
         $res = array(
             'js' => array(),
             'css' => array(),
@@ -351,10 +346,7 @@ class FISPagelet {
         switch($mode) {
             case self::MODE_NOSCRIPT:
                 //渲染widget以外静态文件
-                $all_static = self::array_unique_recursive(array_merge_recursive(
-                    self::$external_widget_static,          //有widget，但是在widget以外的资源
-                    FISResource::getArrStaticCollection()  //如果没有widget，资源收集
-                ));
+                $all_static = FISResource::getArrStaticCollection();
                 $html = self::renderStatic(
                     $html,
                     $all_static,
@@ -373,24 +365,12 @@ class FISPagelet {
                 ));
                 break;
             case self::MODE_BIGPIPE:
-                $external = self::array_unique_recursive(
-                    array_merge_recursive(
-                        self::$external_widget_static,
-                        FISResource::getArrStaticCollection()
-                    )
-                );
+                $external = FISResource::getArrStaticCollection();
                 $html = self::renderStatic(
                     $html,
                     $external,
                     true
                 );
-                //排除已经加载过的组件
-                foreach ($res as $key => $val) {
-                    if (in_array($key, array('js', 'css')) && !empty($val)) {
-                        $res[$key] = array_diff($val, (array)$external[$key]);
-                    }
-                }
-
                 $html .= '<script type="text/javascript">';
                 $html .= "\n";
                 if(isset($res['script'])){

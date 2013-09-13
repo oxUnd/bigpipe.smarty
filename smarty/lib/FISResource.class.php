@@ -16,8 +16,17 @@ class FISResource {
     private static $arrStaticCollection = array();
     //收集require.async组件
     private static $arrRequireAsyncCollection = array();
+    private static $arrWidgetStatic = array();
+    private static $arrWidgetRequireAsync = array();
+
     private static $arrScriptPool = array();
     private static $arrStylePool = array();
+
+    private static $arrWidgetScript = array();
+    private static $arrWidgetStyle = array();
+
+    private static $isInnerWidget = false;
+
     public static $framework = null;
 
     public static function reset() {
@@ -26,6 +35,71 @@ class FISResource {
         self::$arrLoaded = array();
         self::$arrScriptPool = array();
         self::$arrStylePool = array();
+    }
+
+    public static function widgetStart() {
+        self::$isInnerWidget = true;
+
+        self::$arrWidgetStatic = array();
+        self::$arrWidgetRequireAsync = array();
+        self::$arrWidgetStatic = array();
+        self::$arrWidgetStyle = array();
+    }
+
+    public static function widgetEnd() {
+
+        self::$isInnerWidget = false;
+        $ret = array();
+        if (self::$arrWidgetRequireAsync) {
+            foreach (self::$arrWidgetRequireAsync as $key => $val) {
+                foreach ($val as $id => $info) {
+                    unset(self::$arrLoaded[$id]);
+                }
+            }
+            $ret['async'] = self::getResourceMap(self::$arrWidgetRequireAsync);
+        }
+        foreach (self::$arrWidgetStatic as $key => $val) {
+            foreach ($val as $uri) {
+                foreach (array_keys(self::$arrLoaded, $uri) as $id) {
+                    unset(self::$arrLoaded[$id]);
+                }
+            }
+        }
+        if (self::$arrWidgetStatic['js']) {
+            $ret['js'] = self::$arrWidgetStatic['js'];
+        }
+        if (self::$arrWidgetStatic['css']) {
+            $ret['css'] = self::$arrWidgetStatic['css'];
+        }
+        if (self::$arrWidgetScript) {
+            $ret['script'] = self::$arrWidgetScript;
+        }
+        if (self::$arrWidgetStyle) {
+            $ret['style'] = self::$arrWidgetStyle;
+        }
+        return $ret;
+    }
+
+    public static function addStatic($uri, $type) {
+        if (self::$isInnerWidget && !in_array($uri, self::$arrStaticCollection[$type])) {
+            self::$arrWidgetStatic[$type][] = $uri;
+        } else {
+            self::$arrStaticCollection[$type][] = $uri;
+        }
+    }
+
+    public static function addAsync($id, $info, $type) {
+        if (self::$isInnerWidget) {
+            self::$arrWidgetRequireAsync[$type][$id] = $info;
+        }
+        self::$arrRequireAsyncCollection[$type][$id] = $info;
+    }
+
+    public static function delAsync($id, $type) {
+        unset(self::$arrRequireAsyncCollection[$type][$id]);
+        if (self::$isInnerWidget) {
+            unset(self::$arrWidgetRequireAsync[$type][$id]);
+        }
     }
 
     //设置framewok mod.js
@@ -38,11 +112,19 @@ class FISResource {
     }
 
     public static function addScriptPool($code) {
-        self::$arrScriptPool[] = $code;
+        if (!self::$isInnerWidget) {
+            self::$arrScriptPool[] = $code;
+        } else {
+            self::$arrWidgetScript[] = $code;
+        }
     }
 
     public static function addStylePool($code) {
-        self::$arrStylePool[] = $code;
+        if (!self::$isInnerWidget) {
+            self::$arrStylePool[] = $code;
+        } else {
+            self::$arrWidgetStyle[] = $code;
+        }
     }
 
     public static function getArrStaticCollection() {
@@ -57,18 +139,18 @@ class FISResource {
 
         //异步脚本
         if (self::$arrRequireAsyncCollection) {
-            self::$arrStaticCollection['async'] = self::getResourceMap();
+            self::$arrStaticCollection['async'] = self::getResourceMap(self::$arrRequireAsyncCollection);
         }
         unset(self::$arrStaticCollection['tpl']);
         return self::$arrStaticCollection;
     }
 
     //获取异步js资源集合，变为json格式的resourcemap
-    public static function getResourceMap() {
+    public static function getResourceMap($arr) {
         $ret = '';
         $arrResourceMap = array();
-        if (isset(self::$arrRequireAsyncCollection['res'])) {
-            foreach (self::$arrRequireAsyncCollection['res'] as $id => $arrRes) {
+        if (isset($arr['res'])) {
+            foreach ($arr['res'] as $id => $arrRes) {
                 $deps = array();
                 if (!empty($arrRes['deps'])) {
                     foreach ($arrRes['deps'] as $strName) {
@@ -91,8 +173,8 @@ class FISResource {
                 }
             }
         }
-        if (isset(self::$arrRequireAsyncCollection['pkg'])) {
-            foreach (self::$arrRequireAsyncCollection['pkg'] as $id => $arrRes) {
+        if (isset($arr['pkg'])) {
+            foreach ($arr as $id => $arrRes) {
                 $arrResourceMap['pkg'][$id] = array(
                     'url'=> $arrRes['uri']
                 );
@@ -167,8 +249,8 @@ class FISResource {
         if ($arrRes['pkg']) {
             $arrPkg = &self::$arrRequireAsyncCollection['pkg'][$arrRes['pkg']];
             if ($arrPkg) {
-                self::$arrStaticCollection['js'][] = $arrPkg['uri'];
-                unset(self::$arrRequireAsyncCollection['pkg'][$arrRes['pkg']]);
+                self::addStatic($arrPkg['uri'], 'js');
+                self::delAsync($arrRes['pkg'], 'pkg');
                 foreach ($arrPkg['has'] as $strHas) {
                     if (isset(self::$arrRequireAsyncCollection['res'][$strHas])) {
                         self::delAsyncDeps($strHas);
@@ -177,8 +259,8 @@ class FISResource {
             }
         } else {
             //已经分析过的并且在其他文件里同步加载的组件，重新收集在同步输出组
-            self::$arrStaticCollection['js'][] = self::$arrRequireAsyncCollection['res'][$strName]['uri'];
-            unset(self::$arrRequireAsyncCollection['res'][$strName]);
+            self::addStatic(self::$arrRequireAsyncCollection['res'][$strName]['uri'], 'js');
+            self::delAsync($strName, 'res');
         }
         if ($arrRes['deps']) {
             foreach ($arrRes['deps'] as $strDep) {
@@ -237,13 +319,15 @@ class FISResource {
 
                     if ($async && $arrRes['type'] === 'js') {
                         if ($arrPkg) {
-                            self::$arrRequireAsyncCollection['pkg'][$arrRes['pkg']] = $arrPkg;
-                            self::$arrRequireAsyncCollection['res'] = array_merge((array)self::$arrRequireAsyncCollection['res'], $arrPkgHas);
+                            self::addAsync($arrRes['pkg'], $arrPkg, 'pkg');
+                            foreach (array_merge((array)self::$arrRequireAsyncCollection['res'], $arrPkgHas) as $id => $val) {
+                                self::addAsync($id, $val, 'res');
+                            }
                         } else {
-                            self::$arrRequireAsyncCollection['res'][$strName] = $arrRes;
+                            self::addAsync($strName, $arrRes, 'res');
                         }
                     } else {
-                        self::$arrStaticCollection[$arrRes['type']][] = $strURI;
+                        self::addStatic($strURI, $arrRes['type']);
                     }
                     return $strURI;
                 } else {
