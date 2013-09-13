@@ -383,8 +383,8 @@ class FISPagelet {
                     $html,
                     self::array_unique_recursive(
                         array_merge_recursive(
-                            FISResource::getArrStaticCollection(),
-                            self::$external_widget_static
+                            self::$external_widget_static,
+                            FISResource::getArrStaticCollection()
                         )
                     ),
                     true

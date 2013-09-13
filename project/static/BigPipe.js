@@ -101,8 +101,8 @@ var BigPipe = function() {
 
         var url = location.href.split('#')[0] + (location.search? '&' : '?') + arr.join('&');
 
-//test ajax no debug's `mode=`
-url=url.replace(/mode=\d*&/, '');
+        //test ajax no debug's `mode=`
+        url=url.replace(/mode=\d*&/, '');
 
         ajax(url, function(res) {
             var data = window.JSON?
