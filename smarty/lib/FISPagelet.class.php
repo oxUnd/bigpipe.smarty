@@ -1,10 +1,4 @@
 <?php
-function debug() {
-    ob_start();
-    var_dump(func_get_args());
-    $out = ob_get_clean();
-    file_put_contents('/tmp/fis.log', $out, FILE_APPEND);
-}
 if (!class_exists('FISResource')) require_once(dirname(__FILE__) . '/FISResource.class.php');
 /**
  * Class FISPagelet
@@ -71,12 +65,12 @@ class FISPagelet {
         $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
             && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
         if ($is_ajax) {
-            //self::setMode(self::MODE_QUICKLING);
+            self::setMode(self::MODE_QUICKLING);
         } else {
-            //self::setMode(self::MODE_NOSCRIPT);
+            self::setMode(self::MODE_NOSCRIPT);
         }
         //test
-        self::setMode($_GET['mode']);
+        //self::setMode($_GET['mode']);
         self::setFilter($_GET['pagelets']);
     }
 
