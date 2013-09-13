@@ -379,16 +379,24 @@ class FISPagelet {
                 ));
                 break;
             case self::MODE_BIGPIPE:
+                $external = self::array_unique_recursive(
+                    array_merge_recursive(
+                        self::$external_widget_static,
+                        FISResource::getArrStaticCollection()
+                    )
+                );
                 $html = self::renderStatic(
                     $html,
-                    self::array_unique_recursive(
-                        array_merge_recursive(
-                            self::$external_widget_static,
-                            FISResource::getArrStaticCollection()
-                        )
-                    ),
+                    $external,
                     true
                 );
+                //排除已经加载过的组件
+                foreach ($res as $key => $val) {
+                    if (in_array($key, array('js', 'css')) && !empty($val)) {
+                        $res[$key] = array_diff($val, (array)$external[$key]);
+                    }
+                }
+
                 $html .= '<script type="text/javascript">';
                 $html .= "\n";
                 if(isset($res['script'])){
