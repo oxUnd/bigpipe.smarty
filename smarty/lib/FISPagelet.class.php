@@ -66,7 +66,7 @@ class FISPagelet {
     static public $arrEmbeded = array();
 
     static public function init() {
-        self::$default_mode = self::MODE_BIGPIPE;
+        self::$default_mode = self::MODE_NOSCRIPT;
         if ($_GET['force_mode']) {
             self::$force_mode = $_GET['force_mode'];
             self::setMode(self::$default_mode);
@@ -122,7 +122,7 @@ class FISPagelet {
     }
 
     static function load($str_name, $smarty) {
-        if(self::$_context['hit'] || self::$mode == self::$default_mode){
+        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
             FISResource::load($str_name, $smarty);
         }
     }
@@ -163,7 +163,6 @@ class FISPagelet {
         } else {
             self::$widget_mode = self::_parseMode($mode);
         }
-
         $id = empty($id) ? '__elm_' . self::$_session_id ++ : $id;
         //widget是否命中，默认命中
         $hit = true;
@@ -226,22 +225,29 @@ class FISPagelet {
             if (isset($pagelet['parent_id'])) {
                 $parent = self::$_contextMap[$pagelet['parent_id']];
                 if (!$parent['hit'] && $pagelet['hit']) {
-                    FISResource::widgetEnd();
+                    self::$inner_widget[self::$widget_mode][] = FISResource::widgetEnd();
                 }
             } else {
                 if ($pagelet['hit']) {
-                    FISResource::widgetEnd();
+                    self::$inner_widget[self::$widget_mode][] = FISResource::widgetEnd();
                 }
-            }
-            if (!isset(self::$_context['parent_id']) && self::$_context['hit']) {
-                self::$inner_widget[self::$widget_mode][] = FISResource::widgetEnd();
             }
 
             if($pagelet['hit']){
-                unset($pagelet['hit']);
-                $pagelet['html'] = $html;
-                self::$_pagelets[] = &$pagelet;
-                unset($pagelet);
+                if (self::$force_mode) {
+                    if (self::$force_mode == self::$widget_mode) {
+                        unset($pagelet['hit']);
+                        $pagelet['html'] = $html;
+                        self::$_pagelets[] = &$pagelet;
+                        unset($pagelet);
+                    }
+                } else {
+                    unset($pagelet['hit']);
+                    $pagelet['html'] = $html;
+                    self::$_pagelets[] = &$pagelet;
+                    unset($pagelet);
+                }
+
             } else {
                 $ret = false;
             }
@@ -333,7 +339,6 @@ class FISPagelet {
             'script' => array(),
             'async' => array(),
         );
-
         //{{{
         foreach (self::$inner_widget[$mode] as $item) {
             foreach ($res as $key => $val) {
