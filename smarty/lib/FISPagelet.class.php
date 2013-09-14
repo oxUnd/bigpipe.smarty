@@ -48,7 +48,9 @@ class FISPagelet {
      * 解析模式
      * @var number
      */
-    static protected $mode;
+    static protected $mode = null;
+
+    static protected $force_mode = null;
 
     /**
      * 某一个widget使用那种模式渲染
@@ -63,6 +65,7 @@ class FISPagelet {
 
     static public function init() {
         if ($_GET['force_mode']) {
+            self::$force_mode = $_GET['force_mode'];
             self::setMode(self::MODE_NOSCRIPT);
         } else {
             $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
@@ -161,7 +164,6 @@ class FISPagelet {
         $id = empty($id) ? '__elm_' . self::$_session_id ++ : $id;
         //widget是否命中，默认命中
         $hit = true;
-
         switch(self::$widget_mode) {
             case self::MODE_NOSCRIPT:
                 if(empty($id)){
@@ -179,10 +181,6 @@ class FISPagelet {
                         .'</textarea>';
                 }
             case self::MODE_BIGPIPE:
-                $has_parent = !empty(self::$_context);
-                if (!$has_parent) {
-                    FISResource::widgetStart();
-                }
                 $context = array( 'id' => $id );
                 $parent = self::$_context;
                 if(!empty($parent)){
@@ -197,6 +195,13 @@ class FISPagelet {
                 }
                 $context['hit'] = $hit;
                 self::$_context = $context;
+
+                if (empty($parent) && $hit) {
+                    FISResource::widgetStart();
+                } else if (!empty($parent) && !$parent['hit'] && $hit) {
+                    FISResource::widgetStart();
+                }
+
                 echo '<div id="' . $id . '">';
                 ob_start();
                 break;
@@ -214,6 +219,20 @@ class FISPagelet {
         if (self::$widget_mode !== self::MODE_NOSCRIPT) {
             $html = ob_get_clean();
             $pagelet = self::$_context;
+            //end
+            if (isset($pagelet['parent_id'])) {
+                $parent = self::$_contextMap[$pagelet['parent_id']];
+                if (!$parent['hit'] && $pagelet['hit']) {
+                    FISResource::widgetEnd();
+                }
+            } else {
+                if ($pagelet['hit']) {
+                    FISResource::widgetEnd();
+                }
+            }
+            if (!isset(self::$_context['parent_id']) && self::$_context['hit']) {
+                self::$inner_widget[self::$widget_mode][] = FISResource::widgetEnd();
+            }
 
             if($pagelet['hit']){
                 unset($pagelet['hit']);
@@ -230,13 +249,7 @@ class FISPagelet {
             } else {
                 self::$_context = null;
             }
-            $has_parent = !empty(self::$_context);
             //收集
-            //end
-            if (!$has_parent) {
-                self::$inner_widget[self::$widget_mode][] = FISResource::widgetEnd();
-                //file_put_contents('/tmp/fis.log', var_export(FISResource::widgetEnd(), true), FILE_APPEND);
-            }
         }
         echo '</div>';
         return $ret;
@@ -310,7 +323,7 @@ class FISPagelet {
     }
     static public function display($html) {
         $pagelets = self::$_pagelets;
-        $mode = isset($_GET['force_mode']) ? $_GET['force_mode'] : self::$mode;
+        $mode = self::$force_mode ? self::$force_mode : self::$mode;
         $res = array(
             'js' => array(),
             'css' => array(),
@@ -339,7 +352,6 @@ class FISPagelet {
                 unset($res[$key]);
             }
         }
-
         //}}}
 
         //tpl信息没有必要打到页面

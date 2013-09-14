@@ -50,6 +50,7 @@ class FISResource {
 
         self::$isInnerWidget = false;
         $ret = array();
+        //{{{ 还原
         if (self::$arrWidgetRequireAsync) {
             foreach (self::$arrWidgetRequireAsync as $key => $val) {
                 foreach ($val as $id => $info) {
@@ -58,6 +59,7 @@ class FISResource {
             }
             $ret['async'] = self::getResourceMap(self::$arrWidgetRequireAsync);
         }
+
         foreach (self::$arrWidgetStatic as $key => $val) {
             foreach ($val as $uri) {
                 foreach (array_keys(self::$arrLoaded, $uri) as $id) {
@@ -65,6 +67,7 @@ class FISResource {
                 }
             }
         }
+        //}}}
         if (self::$arrWidgetStatic['js']) {
             $ret['js'] = self::$arrWidgetStatic['js'];
         }
