@@ -10,9 +10,6 @@
             background-color: red;
         }
         {%/style%}
-        {%script%}
-        alert('test');
-        {%/script%}
 
         {%require name="pagelet:page/index.css"%}
         {%widget name="pagelet:widget/first/first.tpl"%}

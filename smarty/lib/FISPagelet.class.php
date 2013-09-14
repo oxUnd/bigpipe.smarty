@@ -52,6 +52,8 @@ class FISPagelet {
 
     static protected $force_mode = null;
 
+    static protected $default_mode = null;
+
     /**
      * 某一个widget使用那种模式渲染
      * @var number
@@ -64,16 +66,17 @@ class FISPagelet {
     static public $arrEmbeded = array();
 
     static public function init() {
+        self::$default_mode = self::MODE_BIGPIPE;
         if ($_GET['force_mode']) {
             self::$force_mode = $_GET['force_mode'];
-            self::setMode(self::MODE_NOSCRIPT);
+            self::setMode(self::$default_mode);
         } else {
             $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
                 && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
             if ($is_ajax) {
                 self::setMode(self::MODE_QUICKLING);
             } else {
-                self::setMode(self::MODE_NOSCRIPT);
+                self::setMode(self::$default_mode);
             }
         }
         self::setFilter($_GET['pagelets']);
@@ -99,13 +102,13 @@ class FISPagelet {
     }
 
     static public function addScript($code) {
-        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
+        if(self::$_context['hit'] || self::$mode == self::$default_mode){
             FISResource::addScriptPool($code);
         }
     }
 
     static public function addStyle($code) {
-        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
+        if(self::$_context['hit'] || self::$mode == self::$default_mode){
             FISResource::addStylePool($code);
         }
     }
@@ -119,7 +122,7 @@ class FISPagelet {
     }
 
     static function load($str_name, $smarty) {
-        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
+        if(self::$_context['hit'] || self::$mode == self::$default_mode){
             FISResource::load($str_name, $smarty);
         }
     }
