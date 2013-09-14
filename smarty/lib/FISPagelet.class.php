@@ -337,7 +337,8 @@ class FISPagelet {
             'js' => array(),
             'css' => array(),
             'script' => array(),
-            'async' => array(),
+            'style' => array(),
+            'async' => array()
         );
         //{{{
         foreach (self::$inner_widget[$mode] as $item) {
@@ -377,6 +378,9 @@ class FISPagelet {
                 header('Content-Type: text/json;');
                 if ($res['script']) {
                     $res['script'] = implode("\n", $res['script']);
+                }
+                if ($res['style']) {
+                    $res['style'] = implode("\n", $res['style']);
                 }
                 $html = json_encode(array(
                     'title' => '',

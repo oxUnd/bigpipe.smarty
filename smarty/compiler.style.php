@@ -3,7 +3,7 @@
 function smarty_compiler_style($params,  $smarty){
     $strCode = '<?php ';
     if (isset($params['id'])) {
-        $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISResource.class.php');
+        $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
         $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
         $strCode .= 'FISPagelet::$cp = ' . $params['id'].';';
     }
@@ -12,7 +12,7 @@ function smarty_compiler_style($params,  $smarty){
 }
 
 function smarty_compiler_styleclose($params,  $smarty){
-    $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISResource.class.php');
+    $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
     $strCode  = '<?php ';
     $strCode .= '$style=ob_get_clean();';
     $strCode .= 'if($style!==false){';
