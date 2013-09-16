@@ -25,6 +25,7 @@ class FISResource {
     private static $arrWidgetScript = array();
     private static $arrWidgetStyle = array();
 
+    //标识是否在分析一个widget
     private static $isInnerWidget = false;
 
     public static $framework = null;
@@ -103,6 +104,13 @@ class FISResource {
         if (self::$isInnerWidget) {
             unset(self::$arrWidgetRequireAsync[$type][$id]);
         }
+    }
+
+    public static function getAsync($id, $type) {
+        if (self::$isInnerWidget) {
+            return self::$arrWidgetRequireAsync[$type][$id];
+        }
+        return self::$arrRequireAsyncCollection[$type][$id];
     }
 
     //设置framewok mod.js
@@ -248,26 +256,31 @@ class FISResource {
      * @param $strName
      */
     private static function delAsyncDeps($strName) {
-        $arrRes = self::$arrRequireAsyncCollection['res'][$strName];
+        //$arrRes = self::$arrRequireAsyncCollection['res'][$strName];
+        $arrRes = self::getAsync($strName, 'res');
         if ($arrRes['pkg']) {
-            $arrPkg = &self::$arrRequireAsyncCollection['pkg'][$arrRes['pkg']];
+            //$arrPkg = &self::$arrRequireAsyncCollection['pkg'][$arrRes['pkg']];
+            $arrPkg = self::getAsync($arrRes['pkg'], 'pkg');
             if ($arrPkg) {
                 self::addStatic($arrPkg['uri'], 'js');
                 self::delAsync($arrRes['pkg'], 'pkg');
                 foreach ($arrPkg['has'] as $strHas) {
-                    if (isset(self::$arrRequireAsyncCollection['res'][$strHas])) {
+                    //if (isset(self::$arrRequireAsyncCollection['res'][$strHas])) {
+                    if (self::getAsync($strHas, 'res')) {
                         self::delAsyncDeps($strHas);
                     }
                 }
             }
         } else {
             //已经分析过的并且在其他文件里同步加载的组件，重新收集在同步输出组
-            self::addStatic(self::$arrRequireAsyncCollection['res'][$strName]['uri'], 'js');
+            $res = self::getAsync($strName, 'res');
+            self::addStatic($res['uri'], 'js');
             self::delAsync($strName, 'res');
         }
         if ($arrRes['deps']) {
             foreach ($arrRes['deps'] as $strDep) {
-                if (isset(self::$arrRequireAsyncCollection['res'][$strDep])) {
+                //if (isset(self::$arrRequireAsyncCollection['res'][$strDep])) {
+                if (self::getAsync($strDep, 'res')) {
                     self::delAsyncDeps($strDep);
                 }
             }

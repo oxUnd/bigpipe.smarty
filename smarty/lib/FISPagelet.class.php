@@ -15,11 +15,6 @@ class FISPagelet {
     const MODE_BIGPIPE = 2;
 
     /**
-     * 收集不是在某一个widget使用的静态资源
-     * @var array
-     */
-    static protected $external_widget_static = array();
-    /**
      * 收集widget内部使用的静态资源
      * array(
      *  0: array(), 1: array(), 2: array()
