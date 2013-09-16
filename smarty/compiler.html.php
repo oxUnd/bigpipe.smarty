@@ -1,4 +1,5 @@
 <?php
+
 function smarty_compiler_html($arrParams,  $smarty){
     $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
     $strFramework = $arrParams['framework'];
@@ -12,7 +13,11 @@ function smarty_compiler_html($arrParams,  $smarty){
     $strCode .= 'FISPagelet::init();';
     $strCode .= ' ?>';
     foreach ($arrParams as $_key => $_value) {
-        $strAttr .= ' ' . $_key . '="<?php echo ' . $_value . ';?>"';
+        if (is_numeric($_key)) {
+            $strAttr .= ' <?php echo ' . $_value .';?>';
+        } else {
+            $strAttr .= ' ' . $_key . '="<?php echo ' . $_value . ';?>"';
+        }
     }
     return $strCode . "<html{$strAttr}>";
 }
