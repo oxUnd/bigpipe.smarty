@@ -34,7 +34,15 @@ var BigPipe = function() {
             dom.id = obj.id;
             document.body.appendChild(dom);
         }
+
         dom.innerHTML = obj.html;
+
+        var scriptText = dom.getElementsByTagName('script');
+        for (var i = scriptText.length - 1; i >= 0; i--) {
+            node = scriptText[i];
+            text = node.text || node.textContent || node.innerHTML || "";
+            window[ "eval" ].call( window, text );
+        };
     }
 
 
@@ -115,9 +123,6 @@ var BigPipe = function() {
         }
 
         var url = location.href.split('#')[0] + (location.search? '&' : '?') + arr.join('&') + '&force_mode=1';
-
-        //test ajax no debug's `mode=`
-        url=url.replace(/mode=\d*&/, '');
 
         ajax(url, function(res) {
             var data = window.JSON?
