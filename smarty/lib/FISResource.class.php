@@ -95,14 +95,16 @@ class FISResource {
     public static function addAsync($id, $info, $type) {
         if (self::$isInnerWidget) {
             self::$arrWidgetRequireAsync[$type][$id] = $info;
+        } else {
+            self::$arrRequireAsyncCollection[$type][$id] = $info;
         }
-        self::$arrRequireAsyncCollection[$type][$id] = $info;
     }
 
     public static function delAsync($id, $type) {
-        unset(self::$arrRequireAsyncCollection[$type][$id]);
         if (self::$isInnerWidget) {
             unset(self::$arrWidgetRequireAsync[$type][$id]);
+        } else {
+            unset(self::$arrRequireAsyncCollection[$type][$id]);
         }
     }
 
