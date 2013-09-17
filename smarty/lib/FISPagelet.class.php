@@ -262,7 +262,7 @@ class FISPagelet {
     //recursive unique
     static public function array_unique_recursive($array) {
         if (!is_array($array) || empty($array)) return $array;
-        $array = array_unique($array, SORT_REGULAR);
+        $array = array_unique($array);
         foreach ($array as $key => $c_array) {
             if (is_array($c_array)) {
                 $array[$key] = self::array_unique_recursive($c_array);
