@@ -2,11 +2,11 @@
 
 function smarty_compiler_style($params,  $smarty){
     $strCode = '<?php ';
-    isset($params['id'])) {
-    $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
     
+    $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
     $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
-    if (
+    
+    if (isset($params['id'])) {
         $strCode .= 'FISPagelet::$cp = ' . $params['id'].';';
     }
     $strCode .= 'ob_start();?>';
