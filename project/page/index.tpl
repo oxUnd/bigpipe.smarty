@@ -1,4 +1,5 @@
-{%html framework="pagelet:static/mod.js"%}
+{%$s=":"%}
+{%html framework="pagelet:static/mod.js"  %}
     {%head%}
         <title>test</title>
         <script type="text/javascript" src="/static/lazyload.js"></script>
@@ -10,7 +11,7 @@
             background-color: red;
         }
         {%/style%}
-
+        {%placeholder value="css_hook"%}
         {%require name="pagelet:page/index.css"%}
         {%widget name="pagelet:widget/first/first.tpl"%}
         {%widget name="pagelet:widget/box/box.tpl" pagelet_id="second" mode="quickling"%}

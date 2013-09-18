@@ -2,9 +2,9 @@
 
 function smarty_compiler_script($params,  $smarty){
     $strCode = '<?php ';
+    $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
+    $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
     if (isset($params['id'])) {
-        $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
-        $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
         $strCode .= 'FISPagelet::$cp = ' . $params['id'].';';
     }
     $strCode .= 'ob_start();?>';
@@ -16,14 +16,15 @@ function smarty_compiler_scriptclose($params,  $smarty){
     $strCode  = '<?php ';
     $strCode .= '$script = ob_get_clean();';
     $strCode .= 'if($script!==false){';
-    $strCode .=     'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
-    $strCode .=     'if(FISPagelet::$cp) {';
-    $strCode .=         'if (!in_array(FISPagelet::$cp, FISPagelet::$arrEmbeded)){';
+    $strCode .=     'if(class_exists(\'FISPagelet\')){';
+    $strCode .=         'if(FISPagelet::$cp) {';
+    $strCode .=             'if (!in_array(FISPagelet::$cp, FISPagelet::$arrEmbeded)){';
+    $strCode .=                 'FISPagelet::addScript($script);';
+    $strCode .=                 'FISPagelet::$arrEmbeded[] = FISPagelet::$cp;';
+    $strCode .=             '}';
+    $strCode .=         '} else {';
     $strCode .=             'FISPagelet::addScript($script);';
-    $strCode .=             'FISPagelet::$arrEmbeded[] = FISPagelet::$cp;';
     $strCode .=         '}';
-    $strCode .=     '} else {';
-    $strCode .=         'FISPagelet::addScript($script);';
     $strCode .=     '}';
     $strCode .= '}';
     $strCode .= 'FISPagelet::$cp = null;?>';
