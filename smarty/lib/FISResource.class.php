@@ -258,16 +258,13 @@ class FISResource {
      * @param $strName
      */
     private static function delAsyncDeps($strName) {
-        //$arrRes = self::$arrRequireAsyncCollection['res'][$strName];
         $arrRes = self::getAsync($strName, 'res');
         if ($arrRes['pkg']) {
-            //$arrPkg = &self::$arrRequireAsyncCollection['pkg'][$arrRes['pkg']];
             $arrPkg = self::getAsync($arrRes['pkg'], 'pkg');
             if ($arrPkg) {
                 self::addStatic($arrPkg['uri'], 'js');
                 self::delAsync($arrRes['pkg'], 'pkg');
                 foreach ($arrPkg['has'] as $strHas) {
-                    //if (isset(self::$arrRequireAsyncCollection['res'][$strHas])) {
                     if (self::getAsync($strHas, 'res')) {
                         self::delAsyncDeps($strHas);
                     }
@@ -299,7 +296,7 @@ class FISResource {
     public static function load($strName, $smarty, $async = false){
         if(isset(self::$arrLoaded[$strName])) {
             //同步组件优先级比异步组件高
-            if (!$async && isset(self::$arrRequireAsyncCollection['res'][$strName])) {
+            if (!$async && self::getAsync($strName, 'res')) {
                 self::delAsyncDeps($strName);
             }
             return self::$arrLoaded[$strName];
@@ -338,7 +335,7 @@ class FISResource {
                     if ($async && $arrRes['type'] === 'js') {
                         if ($arrPkg) {
                             self::addAsync($arrRes['pkg'], $arrPkg, 'pkg');
-                            foreach (array_merge((array)self::$arrRequireAsyncCollection['res'], $arrPkgHas) as $id => $val) {
+                            foreach ($arrPkgHas as $id => $val) {
                                 self::addAsync($id, $val, 'res');
                             }
                         } else {

@@ -6,7 +6,7 @@ function smarty_compiler_require($arrParams,  $smarty){
     $strAsync = $arrParams['async'];
 
     if ($strAsync) {
-        $strAsync = trim($strAsync, array('\'', '"'));
+        $strAsync = trim($strAsync, '\'"'));
         if ($strAsync == 'true') {
             $strAsync = 'true';
         } else {

@@ -116,9 +116,9 @@ class FISPagelet {
         return self::JS_SCRIPT_HOOK;
     }
 
-    static function load($str_name, $smarty) {
+    static function load($str_name, $smarty, $async = false) {
         if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
-            FISResource::load($str_name, $smarty);
+            FISResource::load($str_name, $smarty, $async);
         }
     }
 
@@ -259,18 +259,6 @@ class FISPagelet {
         return $ret;
     }
 
-    //recursive unique
-    static public function array_unique_recursive($array) {
-        if (!is_array($array) || empty($array)) return $array;
-        $array = array_unique($array);
-        foreach ($array as $key => $c_array) {
-            if (is_array($c_array)) {
-                $array[$key] = self::array_unique_recursive($c_array);
-            }
-        }
-        return $array;
-    }
-
     /**
      * 渲染静态资源
      * @param $html
@@ -333,14 +321,25 @@ class FISPagelet {
             'css' => array(),
             'script' => array(),
             'style' => array(),
-            'async' => array()
+            'async' => array(
+                'res' => array(),
+                'pkg' => array()
+            )
         );
         //{{{
         foreach (self::$inner_widget[$mode] as $item) {
             foreach ($res as $key => $val) {
                 if (isset($item[$key]) && is_array($item[$key])) {
-                    $arr = array_merge_recursive($res[$key], $item[$key]);
-                    $arr = self::array_unique_recursive($arr);
+                    if ($key != 'async') {
+                        $arr = array_merge($res[$key], $item[$key]);
+                        $arr = array_unique($arr);
+                    } else {
+                        $arr = array(
+                            'res' => array_merge($res['async']['res'], $item['async']['res']),
+                            'pkg' => array_merge($res['async']['pkg'], $item['async']['pkg'])
+                        );
+                    }
+
                     if (empty($arr)) {
                         unset($res[$key]);
                     } else {
