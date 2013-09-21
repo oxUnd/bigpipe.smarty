@@ -335,8 +335,8 @@ class FISPagelet {
                         $arr = array_unique($arr);
                     } else {
                         $arr = array(
-                            'res' => array_merge($res['async']['res'], $item['async']['res']),
-                            'pkg' => array_merge($res['async']['pkg'], $item['async']['pkg'])
+                            'res' => array_merge($res['async']['res'], (array)$item['async']['res']),
+                            'pkg' => array_merge($res['async']['pkg'], (array)$item['async']['pkg'])
                         );
                     }
                     //合并收集
