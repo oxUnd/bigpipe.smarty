@@ -1,14 +1,18 @@
 var BigPipe = function() {
 
     function ajax(url, cb, data) {
-        var xhr = new XMLHttpRequest;
+        var xhr = new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP");
+
         xhr.onreadystatechange = function() {
             if (this.readyState == 4) {
                 cb(this.responseText);
             }
         };
-        xhr.open(data?'POST':'GET', url, true);
-        if (data) xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhr.open(data?'POST':'GET', url + '&t=' + ~~(Math.random() * 1e6), true);
+
+        if (data) {
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        }
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.send(data);
     }
@@ -36,13 +40,6 @@ var BigPipe = function() {
         }
 
         dom.innerHTML = obj.html;
-
-        var scriptText = dom.getElementsByTagName('script');
-        for (var i = scriptText.length - 1; i >= 0; i--) {
-            node = scriptText[i];
-            text = node.text || node.textContent || node.innerHTML || "";
-            window[ "eval" ].call( window, text );
-        };
     }
 
 
@@ -72,31 +69,14 @@ var BigPipe = function() {
             require.resourceMap(rm.async);
         }
 
-
-        if (rm.css) {
-            LazyLoad.css(rm.css, function() {
-                if (rm.style) {
-                    var dom = document.createElement('style');
-                    dom.innerHTML = rm.style;
-                    document.getElementsByTagName('head')[0].appendChild(dom);
-                }
-                render(data.pagelets);
-                if (rm.js) {
-                    LazyLoad.js(rm.js, function() {
-                        rm.script && window.eval(rm.script);
-                    });
-                }
-                else {
-                    rm.script && window.eval(rm.script);
-                }
-            });
-        } else {
+        function loadNext() {
             if (rm.style) {
                 var dom = document.createElement('style');
                 dom.innerHTML = rm.style;
                 document.getElementsByTagName('head')[0].appendChild(dom);
             }
             render(data.pagelets);
+            
             if (rm.js) {
                 LazyLoad.js(rm.js, function() {
                     rm.script && window.eval(rm.script);
@@ -106,6 +86,10 @@ var BigPipe = function() {
                 rm.script && window.eval(rm.script);
             }
         }
+
+        rm.css
+            ? LazyLoad.css(rm.css, loadNext)
+            : loadNext();
     }
 
 
