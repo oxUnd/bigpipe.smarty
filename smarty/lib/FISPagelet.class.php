@@ -163,17 +163,12 @@ class FISPagelet {
         $hit = true;
         switch(self::$widget_mode) {
             case self::MODE_NOSCRIPT:
-                if(empty($id)){
-                    echo '<div>';
-                } else {
-                    echo '<div id="' . $id . '">';
-                }
                 break;
             case self::MODE_QUICKLING:
                 $hit = self::$filter[$id];
                 //widget调用时mode='quickling'，so，打出异步加载代码
                 if ($special_flag && !$has_parent) {
-                    echo '<textarea class="g_fis_bigrender" style="display: none;">'
+                    echo '<textarea class="g_fis_bigrender" style="visibility: hidden;">'
                         .'BigPipe.asyncLoad({id: "'.$id.'"});'
                         .'</textarea>';
                 }
@@ -254,8 +249,8 @@ class FISPagelet {
                 self::$_context = null;
             }
             //收集
+            echo '</div>';
         }
-        echo '</div>';
         return $ret;
     }
 
