@@ -11,14 +11,11 @@ fis.config.merge({
             '/widget/box/box.css',
             '/widget/third/third.css'
         ],
-        '/static/second.js': [
-            '/widget/ui/msg/msg.js'
+        '/static/msg.head.js': [
+            '/widget/head/head.js'
         ],
         '/static/all.css': [
             '**.css'
-        ],
-        '/static/all.js': [
-            '**.js'
         ]
     }
 });
