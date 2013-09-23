@@ -137,15 +137,3 @@ var BigPipe = function() {
         asyncLoad: asyncLoad
     }
 }();
-
-
-//test +lazyload.js
-//document.write('<script src="lazyload.js"></script>');
-
-//test 执行textarea的内容
-window.onload = function() {
-    var els = document.getElementsByTagName('textarea');
-    for(var i = 0; i < els.length; i++) {
-        window.eval(els[i].value);
-    }
-}

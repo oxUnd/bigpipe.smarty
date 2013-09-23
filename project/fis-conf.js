@@ -6,12 +6,19 @@ fis.config.merge({
         }
     },
     pack: {
-        '/static/second.css': [
+        '/static/second.third.css': [
             '/widget/ui/msg/msg.css',
-            '/widget/box/box.css'
+            '/widget/box/box.css',
+            '/widget/third/third.css'
         ],
         '/static/second.js': [
             '/widget/ui/msg/msg.js'
+        ],
+        '/static/all.css': [
+            '**.css'
+        ],
+        '/static/all.js': [
+            '**.js'
         ]
     }
 });

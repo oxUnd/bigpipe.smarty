@@ -15,7 +15,7 @@
     {%body%}
         {%style%}
         body {
-            background-color: red;
+            background-color: #EEEEEE;
         }
         {%/style%}
         {%require name="pagelet:page/index.css"%}
