@@ -1,5 +1,17 @@
 var BigPipe = function() {
 
+    var pagelets = [],
+        styles = {},
+        container,
+        containerId,
+        onReady;
+
+
+    function parseJSON (json) {
+        return window.JSON? JSON.parse(json) : eval('(' + json + ')');
+    }
+
+
     function ajax(url, cb, data) {
         var xhr = new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP");
 
@@ -17,6 +29,16 @@ var BigPipe = function() {
         xhr.send(data);
     }
 
+    function getCommentById(html_id) {
+        //
+        // 取出html_id元素内保存的注释内容
+        //
+        var dom = document.getElementById(html_id);
+        if (!dom) {
+            throw Error('[BigPipe] Cannot find comment `' + html_id + '`');
+        }
+        return dom.firstChild.nodeValue;
+    }
 
     function renderPagelet(obj, pageletsMap, rendered) {
         if (obj.id in rendered) {
@@ -39,17 +61,17 @@ var BigPipe = function() {
             document.body.appendChild(dom);
         }
 
-        dom.innerHTML = obj.html;
+        dom.innerHTML = obj.html || getCommentById(obj.html_id);
     }
 
 
-    function render(pagelets) {
+    function render() {
         var i, n = pagelets.length;
         var pageletsMap = {};
         var rendered = {};
 
         //
-        // 初始化 pagelet.id => pagelet 映射表
+        // pagelet.id => pagelet 映射表
         //
         for(i = 0; i < n; i++) {
             var obj = pagelets[i];
@@ -62,9 +84,7 @@ var BigPipe = function() {
     }
 
 
-    function process(data) {
-        var rm = data.resource_map;
-
+    function process(rm, cb) {
         if (rm.async) {
             require.resourceMap(rm.async);
         }
@@ -75,8 +95,9 @@ var BigPipe = function() {
                 dom.innerHTML = rm.style;
                 document.getElementsByTagName('head')[0].appendChild(dom);
             }
-            render(data.pagelets);
-            
+
+            cb();
+
             if (rm.js) {
                 LazyLoad.js(rm.js, function() {
                     rm.script && window.eval(rm.script);
@@ -93,31 +114,164 @@ var BigPipe = function() {
     }
 
 
-    function asyncLoad(arg) {
-        if (!(arg instanceof Array)) {
-            arg = [arg];
+    function execute(contents) {
+        var js = contents[0];
+        if (js.length > 0) {
+            window.eval( js.join(';') );
         }
-        var obj, arr = [];
-        for (var i = arg.length - 1; i >= 0; i--) {
-            obj = arg[i];
-            if (!obj.id) {
-                throw new Error('missing pagelet id');
+
+        var css = contents[1];
+        if (css.length > 0) {
+            css = css.join('\n');
+            if (! (css in styles)) {
+                styles[css] = true;
+
+                var node = document.createElement('style');
+                node.innerHTML = css;
+                document.getElementsByTagName('head')[0].appendChild(node);
             }
-            arr.push('pagelets[]=' + obj.id);
         }
 
-        var url = location.href.split('#')[0] + (location.search? '&' : '?') + arr.join('&') + '&force_mode=1';
+        render();
+    }
 
-        ajax(url, function(res) {
-            var data = window.JSON?
-                JSON.parse(res) :
-                eval('(' + res + ')');
+    function init(arg) {
 
-            process(data);
+    }
+
+    /**
+     *
+     */
+    function register(obj) {
+        process(obj, function() {
+            render();
         });
     }
 
+    function fetch(url, id) {
+        //
+        // Quickling请求局部
+        //
+        containerId = id;
+
+        ajax(url, function(data) {
+            if (id == containerId) {
+                history.pushState(null, null, url);
+                onPagelets(parseJSON(data), id);
+            }
+        });
+    }
+
+    function refresh(url, id) {
+        fetch(url, id);
+    }
+
+    /**
+     * 异步加载pagelets
+     */
+    function asyncLoad(pageletIDs) {
+        if (!(pageletIDs instanceof Array)) {
+            pageletIDs = [pageletIDs];
+        }
+
+        var i, args = [];
+        for(i = pageletIDs.length - 1; i >= 0; i--) {
+            var id = pageletIDs[i].id;
+            if (!id) {
+                throw Error('[BigPipe] missing pagelet id');
+            }
+            args.push('pagelets[]=' + id);
+        }
+
+        var url = location.href.split('#')[0] +
+            (location.search? '&' : '?') + args.join('&') + '&force_mode=1';
+
+        // 异步请求pagelets
+        ajax(url, function(res) {
+            var data = parseJSON(res);
+
+            process(data.resource_map, function() {
+                render(data.pagelets);
+            });
+        });
+    }
+
+    /**
+     * 添加一个pagelet到缓冲队列
+     */
+    function onPageletArrived(obj) {
+        pagelets.push(obj);
+    }
+
+    function onPagelets(obj, id) {
+        //
+        // Quickling请求响应
+        //
+        if (obj.title) {
+            document.title = obj.title;
+        }
+
+        //
+        // 清空需要填充的DOM容器
+        //
+        container = document.getElementById(id);
+        container.innerHTML = '';
+        pagelets = obj.pagelets;
+
+        if (obj.script) {
+            var script = (obj.script.pagelet || '') + ';' + (obj.script.page || '');
+            onReady = new Function(script);
+        }
+
+        register(obj.resource_map);
+    }
+
+    function onPageReady(f) {
+        onReady = f;
+    }
+
+    function onPageChange(pid) {
+        fetch(location.pathname +
+            (location.search? location.search + '&' : '?') + 'pagelets=' + pid);
+    }
+
+
+    // -------------------- 事件队列 --------------------
+    var SLICE = [].slice;
+    var events = {};
+
+    function trigger(type /* args... */) {
+        var list = events[type];
+        if (!list) {
+            return;
+        }
+
+        var arg = SLICE.call(arguments, 1);
+        for(var i = 0, j = list.length; i < j; i++) {
+            var cb = list[i];
+            if (cb.f.apply(cb.o, arg) === false) {
+                break;
+            }
+        }
+    }
+
+    function on(type, listener, context) {
+        var queue = events[type] || (events[type] = []);
+        queue.push({f: listener, o: context});
+    }
+
+
     return {
-        asyncLoad: asyncLoad
+        init: init,
+        asyncLoad: asyncLoad,
+        register: register,
+        refresh: refresh,
+
+        onPageReady: onPageReady,
+        onPageChange: onPageChange,
+
+        onPageletArrived: onPageletArrived,
+        onPagelets: onPagelets,
+        on: on
     }
 }();

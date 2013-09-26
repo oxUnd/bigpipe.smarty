@@ -61,7 +61,7 @@ class FISPagelet {
     static public $arrEmbeded = array();
 
     static public function init() {
-        self::$default_mode = self::MODE_NOSCRIPT;
+        self::$default_mode = self::MODE_BIGPIPE;
         if ($_GET['force_mode']) {
             self::$force_mode = $_GET['force_mode'];
             self::setMode(self::$default_mode);
@@ -379,18 +379,13 @@ class FISPagelet {
                     $external,
                     true
                 );
-                $html .= '<script type="text/javascript">';
                 $html .= "\n";
-                if(isset($res['script'])){
-                    $html .= 'BigPipe.onPageReady(function(){';
-                    if(isset($res['script'])){
-                        $html .= "\n";
-                        $html .= implode("\n", $res['script']);
-                    }
-                    $html .= '});';
-                    unset($res['script']);
+                if ($res['script']) {
+                    $res['script'] = implode("\n", $res['script']);
                 }
-                $html .= '</script>';
+                if ($res['style']) {
+                    $res['style'] = implode("\n", $res['style']);
+                }
                 $html .= "\n";
                 foreach($pagelets as $index => $pagelet){
                     $id = '__cnt_' . $index;
