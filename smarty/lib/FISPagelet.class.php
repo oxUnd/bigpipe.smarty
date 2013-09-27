@@ -117,7 +117,7 @@ class FISPagelet {
     }
 
     static function load($str_name, $smarty, $async = false) {
-        if(self::$_context['hit'] || self::$mode == self::MODE_NOSCRIPT){
+        if(self::$_context['hit'] || self::$mode == self::$default_mode){
             FISResource::load($str_name, $smarty, $async);
         }
     }
@@ -374,6 +374,15 @@ class FISPagelet {
                 break;
             case self::MODE_BIGPIPE:
                 $external = FISResource::getArrStaticCollection();
+                $page_script = '';
+//                if ($external['script']) {
+//                    $page_script = implode("\n", $external['script']);
+//                }
+//                unset($external['script']);
+//                if ($res['style']) {
+//                    $external['style'] = array_merge($res['style'], (array)$external['style']);
+//                    unset($res['style']);
+//                }
                 $html = self::renderStatic(
                     $html,
                     $external,
@@ -381,7 +390,7 @@ class FISPagelet {
                 );
                 $html .= "\n";
                 if ($res['script']) {
-                    $res['script'] = implode("\n", $res['script']);
+                    $res['script'] = implode("\n", $res['script']) . $page_script;
                 }
                 if ($res['style']) {
                     $res['style'] = implode("\n", $res['style']);
