@@ -37,7 +37,11 @@ var BigPipe = function() {
         if (!dom) {
             throw Error('[BigPipe] Cannot find comment `' + html_id + '`');
         }
-        return dom.firstChild.nodeValue;
+        var html = dom.firstChild.nodeValue;
+        html = html.substring(1, html.length - 1).
+            replace(/\\([\s\S]|$)/g,'$1');
+        dom.parentNode.removeChild(dom);
+        return html;
     }
 
     function renderPagelet(obj, pageletsMap, rendered) {
