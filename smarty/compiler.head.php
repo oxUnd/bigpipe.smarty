@@ -11,7 +11,7 @@ function smarty_compiler_head($arrParams,  $smarty){
 function smarty_compiler_headclose($arrParams,  $smarty){
     $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
     $strCode = '<?php ';
-    $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
+    $strCode .= 'if(!class_exists(\'FISPagelet\', false)){require_once(\'' . $strResourceApiPath . '\');}';
     $strCode .= 'echo FISPagelet::cssHook();';
     $strCode .= '?>';
     $strCode .= '</head>';

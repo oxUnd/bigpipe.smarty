@@ -6,7 +6,7 @@ function smarty_compiler_html($arrParams,  $smarty){
     unset($arrParams['framework']);
     $strAttr = '';
     $strCode = '<?php ';
-    $strCode .= 'if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
+    $strCode .= 'if(!class_exists(\'FISPagelet\', false)){require_once(\'' . $strResourceApiPath . '\');}';
     if (isset($strFramework)) {
         $strCode .= 'FISResource::setFramework(FISResource::load('.$strFramework.', $_smarty_tpl->smarty));';
     }

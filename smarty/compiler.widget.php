@@ -2,7 +2,7 @@
 
 function smarty_compiler_widget($arrParams,  $smarty){
     $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
-    $strCode = '<?php if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
+    $strCode = '<?php if(!class_exists(\'FISPagelet\', false)){require_once(\'' . $strResourceApiPath . '\');}';
     $strCall = $arrParams['call'];
     $bHasCall = isset($strCall);
     $strName = $arrParams['name'];

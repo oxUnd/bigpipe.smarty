@@ -11,7 +11,7 @@ function smarty_compiler_body($arrParams,  $smarty){
 function smarty_compiler_bodyclose($arrParams,  $smarty){
     $strCode = '</body>';
     $strCode .= '<?php ';
-    $strCode .= 'if(class_exists(\'FISPagelet\')){';
+    $strCode .= 'if(class_exists(\'FISPagelet\', false)){';
     $strCode .= 'echo FISPagelet::jsHook();';
     $strCode .= '}';
     $strCode .= '?>';

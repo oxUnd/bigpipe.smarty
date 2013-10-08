@@ -5,7 +5,7 @@ function smarty_compiler_uri($arrParams,  $smarty){
     $strCode = '';
     if($strName){
         $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
-        $strCode .= '<?php if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
+        $strCode .= '<?php if(!class_exists(\'FISPagelet\', false)){require_once(\'' . $strResourceApiPath . '\');}';
         $strCode .= 'echo FISPagelet::getUri(' . $strName . ',$_smarty_tpl->smarty);';
         $strCode .= '?>';
     }
