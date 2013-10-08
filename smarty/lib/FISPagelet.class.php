@@ -92,6 +92,10 @@ class FISPagelet {
         }
     }
 
+    static public function setTitle($title) {
+        self::$_title = $title;
+    }
+
     static public function getUri($strName, $smarty) {
         return FISResource::getUri($strName, $smarty);
     }
@@ -367,7 +371,7 @@ class FISPagelet {
                     $res['style'] = implode("\n", $res['style']);
                 }
                 $html = json_encode(array(
-                    'title' => '',
+                    'title' => self::$_title,
                     'pagelets' => $pagelets,
                     'resource_map' => $res
                 ));
