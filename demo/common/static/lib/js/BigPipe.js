@@ -73,7 +73,11 @@ var BigPipe = function() {
         if (!dom) {
             dom = document.createElement('div');
             dom.id = obj.id;
-            document.body.appendChild(dom);
+            if (container) {
+                container.appendChild(dom);
+            } else {
+                document.body.appendChild(dom);
+            }
         }
 
         dom.innerHTML = obj.html || getCommentById(obj.html_id);
@@ -175,7 +179,7 @@ var BigPipe = function() {
         
         containerId = id;
 
-        if (Cache[url] && times_t < 10) {
+        if (Cache[url] && times_t < 0) {
             times_t++;
             _pushState(back);
             onPagelets(Cache[url], id);
@@ -190,6 +194,8 @@ var BigPipe = function() {
                     Cache[url] = json;
                     times_t = 0;
                     onPagelets(json, id);
+                    //reset
+                    container = undefined;
                 }
             });
         }

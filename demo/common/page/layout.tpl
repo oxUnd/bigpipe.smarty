@@ -14,7 +14,8 @@
                     elm.onclick = function() {
                         var id = this.getAttribute('data-area');
                         var link = this.getAttribute('data-href');
-                        BigPipe.refresh(link + '?pagelets=' + id, id);
+                        console.log([link, id]);
+                        BigPipe.refresh(link, id);
                     };
                 }
             }
@@ -28,52 +29,32 @@
 {%/head%}
 
 {%body%}
-<div class="content">
-    <div class="header">
-        <div class="pure-menu pure-menu-open pure-menu-horizontal">
-            <ul>
-                <li><a data-href="/index/page/index" data-area="pager">Home</a></li>
-                <li><a data-href="/index/page/about" data-area="pager">Flickr</a></li>
-                <li><a data-href="#">Messenger</a></li>
-                <li><a data-href="#">Sports</a></li>
-                <li><a data-href="#">Finance</a></li>
-            </ul>
-        </div>
-    </div>
 
-    <div class="splash">
-        <div class="pure-g-r">
-            <div class="pure-u-1-3">
-                <div class="l-box splash-image">
-                    <img src="http://placehold.it/500x350"
-                         alt="Placeholder image for example.">
-                </div>
-            </div>
+    <div class="pure-g-r content" id="layout">
+        <div class="pure-u" id="nav">
+            <a href="#" class="nav-menu-button">Menu</a>
 
-            <div class="pure-u-2-3">
-                <div class="l-box splash-text">
-                    <h1 class="splash-head">
-                        Some big bold text.
-                    </h1>
+            <div class="nav-inner">
+                <button class="pure-button primary-button">Compose</button>
 
-                    <h2 class="splash-subhead">
-                        The HTML and CSS for this layout show how you can make a modern, responsive landing page for your next product. Browse through the source to see how we use menus and responsive grids to create this layout. Shrink your browser width and watch the layout transform and play nice with small screens.
-                    </h2>
-
-                    <p>
-                        <a href="#" class="pure-button primary-button">Get Started</a>
-                    </p>
+                <div class="pure-menu pure-menu-open">
+                    <ul>
+                        <li><a data-href="/index/page/index?pagelets[]=pagelet_list&pagelets[]=pagelet_detail" data-area="pager">Inbox <span class="email-count">(2)</span></a></li>
+                        <li><a href="#">Important</a></li>
+                        <li><a href="#">Sent</a></li>
+                        <li><a href="#">Drafts</a></li>
+                        <li><a href="#">Trash</a></li>
+                        <li class="pure-menu-heading">Labels</li>
+                        <li><a href="#"><span class="email-label-personal"></span>Personal</a></li>
+                        <li><a href="#"><span class="email-label-work"></span>Work</a></li>
+                        <li><a href="#"><span class="email-label-travel"></span>Travel</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
+        <div id="pager">
+            {%block name="main"%}{%/block%}
+        </div>
     </div>
-    <div id="pager" class="content">
-        {%block name="content"%}{%/block%}
-    </div>
-
-    <div class="footer">
-        View the source of this layout to learn more. Made with love by the YUI Team.
-    </div>
-</div>
 {%/body%}
 {%/html%}
