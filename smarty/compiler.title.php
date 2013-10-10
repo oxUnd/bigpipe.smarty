@@ -12,6 +12,7 @@ function smarty_compiler_titleclose($arrParams,  $smarty){
 
     $strCode .= 'if ($title) {';
     $strCode .=     'FISPagelet::setTitle($title);';
+    $strCode .=     'echo $title;';
     $strCode .= '}';
     $strCode .= ' ?>';
     return $strCode . '</title>';

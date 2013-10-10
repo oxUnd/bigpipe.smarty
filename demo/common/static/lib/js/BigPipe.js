@@ -167,17 +167,26 @@ var BigPipe = function() {
         //
         // Quickling请求局部
         //
+        function _pushState(back) {
+            if (!back) {
+                history.pushState({referUrl: url, id: id}, null, url);
+            }
+        }
+        
         containerId = id;
+
         if (Cache[url] && times_t < 10) {
             times_t++;
+            _pushState(back);
             onPagelets(Cache[url], id);
+        } else if (times_t == 10) {
+            //reload
+            window.location.reload();
         } else {
             ajax(url, function(data) {
                 if (id == containerId) {
-                    if (!back) {
-                        history.pushState({referUrl: url, id: id}, null, url);
-                    }
                     var json = parseJSON(data);
+                    _pushState(back);
                     Cache[url] = json;
                     times_t = 0;
                     onPagelets(json, id);
