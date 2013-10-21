@@ -1,6 +1,7 @@
 {%html framework="common:static/lib/js/mod.js"%}
 {%head%}
     {%title%}{%$title%}{%/title%}
+    <meta charset="utf-8" />
     <script type="text/javascript">
         window.onload = function() {
             var elms = document.getElementsByClassName('g_fis_bigrender');
@@ -21,7 +22,7 @@
             }
         };
     </script>
-    
+
     {%require name="common:static/lib/css/base.css"%}
     {%require name="common:static/lib/js/lib.js"%}
     {%require name="common:static/css/layout.css"%}

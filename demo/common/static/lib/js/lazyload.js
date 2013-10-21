@@ -192,10 +192,10 @@ LazyLoad = (function (doc) {
         });
       } else {
         // Load sequentially.
-        for (i = 0; i < urls.length; ++i) {
+        for (i = 0, len = urls.length; i < len; ++i) {
           queue[type].push({
             urls    : [urls[i]],
-            callback: i === urls.length - 1 ? callback : null, // callback is only added to the last URL
+            callback: i === len - 1 ? callback : null, // callback is only added to the last URL
             obj     : obj,
             context : context
           });
@@ -210,9 +210,9 @@ LazyLoad = (function (doc) {
     }
 
     head || (head = doc.head || doc.getElementsByTagName('head')[0]);
-    pendingUrls = p.urls.slice();
+    pendingUrls = p.urls;
 
-    for (i = 0; i < urls.length; ++i) {
+    for (i = 0, len = pendingUrls.length; i < len; ++i) {
       url = pendingUrls[i];
 
       if (isCSS) {
@@ -238,10 +238,17 @@ LazyLoad = (function (doc) {
       } else if (isCSS && (env.gecko || env.webkit)) {
         // Gecko and WebKit don't support the onload event on link nodes.
         if (env.webkit) {
+          var loaded;
           // In WebKit, we can poll for changes to document.styleSheets to
           // figure out when stylesheets have loaded.
           p.urls[i] = node.href; // resolve relative URLs (or polling won't work)
-          pollWebKit();
+          loaded = pollWebKit();
+          
+          if (loaded) {
+            i--;
+            len = pendingUrls.length;
+            continue;
+          }
         } else {
           // In Gecko, we can import the requested URL into a <style> node and
           // poll for the existence of node.sheet.cssRules. Props to Zach
@@ -312,20 +319,17 @@ LazyLoad = (function (doc) {
   @private
   */
   function pollWebKit() {
-    var css = pending.css, i;
+    var css = pending.css, i, ret = false;
 
     if (css) {
       i = styleSheets.length;
 
       // Look for a stylesheet matching the pending URL.
-      if (css.urls[0].indexOf('/') === 0) {
-        finish('css');
-      } else {
-        while (--i >= 0) {
-          if (styleSheets[i].href === css.urls[0]) {
-            finish('css');
-            break;
-          }
+      while (--i >= 0) {
+        if (styleSheets[i].href === css.urls[0]) {
+          ret = true;
+          finish('css');
+          break;
         }
       }
 
@@ -343,6 +347,7 @@ LazyLoad = (function (doc) {
         }
       }
     }
+    return ret;
   }
 
   return {
@@ -367,7 +372,7 @@ LazyLoad = (function (doc) {
     },
 
     /**
-    Requests the specified JavaScript URLa or URLs and executes the specified
+    Requests the specified JavaScript URL or URLs and executes the specified
     callback (if any) when they have finished loading. If an array of URLs is
     specified and the browser supports it, the scripts will be loaded in
     parallel and the callback will be executed after all scripts have
