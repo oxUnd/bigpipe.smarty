@@ -8,16 +8,6 @@ var BigPipe = function() {
         containerId,
         onReady;
 
-    function historyBack(obj) {
-        refresh(obj.referUrl, obj.id, true);
-    }
-
-    window.addEventListener("popstate", function(e) {
-        if (e.state) {
-            historyBack(e.state);
-        }
-    });
-
     function parseJSON (json) {
         return window.JSON? JSON.parse(json) : eval('(' + json + ')');
     }
@@ -167,45 +157,22 @@ var BigPipe = function() {
         });
     }
 
-    function fetch(url, id, back) {
+    function fetch(url, id) {
         //
         // Quickling请求局部
         //
-        function _pushState(back) {
-            if (!back) {
-                history.pushState({referUrl: url, id: id}, null, url);
-            }
-        }
-        
         containerId = id;
+        ajax(url, function(data) {
+            if (id == containerId) {
+                var json = parseJSON(data);
+                onPagelets(json, id);
 
-        if (Cache[url] && times_t < 0) {
-            times_t++;
-            _pushState(back);
-            onPagelets(Cache[url], id);
-        } else if (times_t == 10) {
-            //reload
-            window.location.reload();
-        } else {
-            ajax(url, function(data) {
-                if (id == containerId) {
-                    var json = parseJSON(data);
-                    _pushState(back);
-                    Cache[url] = json;
-                    times_t = 0;
-                    onPagelets(json, id);
-                    //reset
-                    container = undefined;
-                }
-            });
-        }
+            }
+        });
     }
 
-    function refresh(url, id, back) {
-        if (typeof back === 'undefined') {
-            back = false;
-        }
-        fetch(url, id, back);
+    function refresh(url, id) {
+        fetch(url, id);
     }
 
     /**
