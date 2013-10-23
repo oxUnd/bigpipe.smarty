@@ -38,7 +38,7 @@ class FISPagelet {
     static private $_contextMap = array();
     static private $_pagelets = array();
     static private $_title = '';
-    static private $_widget_html = array();
+    static private $_pagelet_group = array();
     /**
      * 解析模式
      * @var number
@@ -145,7 +145,7 @@ class FISPagelet {
      * @param $mode
      * @return bool
      */
-    static public function start($id, $mode = null) {
+    static public function start($id, $mode = null, $group = null) {
         $has_parent = !empty(self::$_context);
         $special_flag = false;
         if ($mode !== null) {
@@ -158,7 +158,10 @@ class FISPagelet {
         } else {
             self::$widget_mode = self::_parseMode($mode);
         }
-        $id = empty($id) ? '__elm_' . self::$_session_id ++ : $id;
+
+        $parent_id = $has_parent ? self::$_context['id'] : '';
+        $id = empty($id) ? '__elm_' . $parent_id . '_' . self::$_session_id ++ : $id;
+
         //widget是否命中，默认命中
         $hit = true;
         switch(self::$widget_mode) {
@@ -166,11 +169,20 @@ class FISPagelet {
                 break;
             case self::MODE_QUICKLING:
                 $hit = self::$filter[$id];
-                //widget调用时mode='quickling'，so，打出异步加载代码
-                if ($special_flag && !$has_parent) {
-                    echo '<textarea class="g_fis_bigrender" style="visibility: hidden;">'
-                        .'BigPipe.asyncLoad({id: "'.$id.'"});'
-                        .'</textarea>';
+                if (!$group) {
+                    //widget调用时mode='quickling'，so，打出异步加载代码
+                    if ($special_flag && !$has_parent) {
+                        echo '<textarea class="g_fis_bigrender" style="visibility: hidden;">'
+                            .'BigPipe.asyncLoad({id: "'.$id.'"});'
+                            .'</textarea>';
+                    }
+                } else {
+                    if (isset(self::$_pagelet_group[$group])) {
+                        self::$_pagelet_group[$group][] = $id;
+                    } else {
+                        self::$_pagelet_group[$group] = array($id);
+                        echo "<!--" . $group . "-->";
+                    }
                 }
             case self::MODE_BIGPIPE:
                 $context = array( 'id' => $id );
@@ -308,7 +320,28 @@ class FISPagelet {
         }
         return $html;
     }
+
+    /**
+     * @param $html string html页面内容
+     * @return mixed
+     */
+    static public function insertPageletGroup($html) {
+        if (empty(self::$_pagelet_group)) {
+            return $html;
+        }
+        $search = array();
+        $replace = array();
+        foreach (self::$_pagelet_group as $group => $ids) {
+            $search[] = '<!--' . $group . '-->';
+            $replace[] = '<textarea class="g_fis_bigrender" style="display: none">BigPipe.asyncLoad([{id: "'.
+                implode('"},{id:"', $ids)
+            .'"}])</textarea>';
+        }
+        return str_replace($search, $replace, $html);
+    }
+
     static public function display($html) {
+        $html = self::insertPageletGroup($html);
         $pagelets = self::$_pagelets;
         $mode = self::$force_mode ? self::$force_mode : self::$mode;
         $res = array(
