@@ -378,15 +378,6 @@ class FISPagelet {
                 break;
             case self::MODE_BIGPIPE:
                 $external = FISResource::getArrStaticCollection();
-                $page_script = '';
-//                if ($external['script']) {
-//                    $page_script = implode("\n", $external['script']);
-//                }
-//                unset($external['script']);
-//                if ($res['style']) {
-//                    $external['style'] = array_merge($res['style'], (array)$external['style']);
-//                    unset($res['style']);
-//                }
                 $html = self::renderStatic(
                     $html,
                     $external,
@@ -394,7 +385,7 @@ class FISPagelet {
                 );
                 $html .= "\n";
                 if ($res['script']) {
-                    $res['script'] = implode("\n", $res['script']) . $page_script;
+                    $res['script'] = implode("\n", $res['script']);
                 }
                 if ($res['style']) {
                     $res['style'] = implode("\n", $res['style']);
@@ -421,8 +412,6 @@ class FISPagelet {
                     $html .= '</script>';
                     $html .= "\n";
                 }
-                $html .= "\n";
-                $html .= '</script>';
                 $html .= '<script type="text/javascript">';
                 $html .= "\n";
                 $html .= 'BigPipe.register(';
