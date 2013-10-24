@@ -151,12 +151,16 @@ class FISPagelet {
         if ($mode !== null) {
             $special_flag = true;
         }
-        if ($mode === null || $has_parent) {
-            if (!$has_parent) {
+
+        if ($has_parent) {
+            //keep
+            self::$widget_mode = self::$widget_mode;
+        } else {
+            if ($mode) {
+                self::$widget_mode = self::_parseMode($mode);
+            } else {
                 self::$widget_mode = self::$mode;
             }
-        } else {
-            self::$widget_mode = self::_parseMode($mode);
         }
 
         $parent_id = $has_parent ? self::$_context['id'] : '';
@@ -166,6 +170,13 @@ class FISPagelet {
         $hit = true;
         switch(self::$widget_mode) {
             case self::MODE_NOSCRIPT:
+                $context = array( 'id' => $id );
+                $parent = self::$_context;
+                if(!empty($parent)){
+                    self::$_contextMap[$parent_id] = $parent;
+                    $context['parent_id'] = $parent['id'];
+                }
+                self::$_context = $context;
                 break;
             case self::MODE_QUICKLING:
                 $hit = self::$filter[$id];
@@ -262,6 +273,15 @@ class FISPagelet {
             }
             //收集
             echo '</div>';
+            //reset
+        } else {
+            //删除上下文
+            if (isset(self::$_context['parent_id'])) {
+                self::$_context = self::$_contextMap[self::$_context['parent_id']];
+                unset(self::$_contextMap[self::$_context['parent_id']]);
+            } else {
+                self::$_context = null;
+            }
         }
         return $ret;
     }
