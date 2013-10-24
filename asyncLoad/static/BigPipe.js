@@ -40,6 +40,15 @@ var BigPipe = function() {
         }
 
         dom.innerHTML = obj.html;
+
+        var scriptText = dom.getElementsByTagName('script');
+        
+        for (var i = 0, len = scriptText.length; i < len; i++) {
+            node = scriptText[i];
+            text = node.text || node.textContent || node.innerHTML || "";
+            window[ "eval" ].call( window, text );
+        }
+
     }
 
 
