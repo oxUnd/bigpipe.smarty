@@ -155,14 +155,21 @@ class FISPagelet {
         if ($mode !== null) {
             $special_flag = true;
         }
-        if ($mode === null || $has_parent) {
-            if (!$has_parent) {
+
+        if ($has_parent) {
+            //keep
+            self::$widget_mode = self::$widget_mode;
+        } else {
+            if ($mode) {
+                self::$widget_mode = self::_parseMode($mode);
+            } else {
                 self::$widget_mode = self::$mode;
             }
-        } else {
-            self::$widget_mode = self::_parseMode($mode);
         }
-        $id = empty($id) ? '__elm_' . self::$_session_id ++ : $id;
+
+        $parent_id = $has_parent ? self::$_context['id'] : '';
+        $id = empty($id) ? '__elm_' . $parent_id . '_' . self::$_session_id ++ : $id;
+
         //widget是否命中，默认命中
         $hit = true;
         switch(self::$widget_mode) {
