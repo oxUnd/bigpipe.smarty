@@ -338,7 +338,7 @@ class FISPagelet {
                 if (isset($item[$key]) && is_array($item[$key])) {
                     if ($key != 'async') {
                         $arr = array_merge($res[$key], $item[$key]);
-                        $arr = array_unique($arr);
+                        $arr = array_merge(array_unique($arr));
                     } else {
                         $arr = array(
                             'res' => array_merge($res['async']['res'], (array)$item['async']['res']),
