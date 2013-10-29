@@ -1,4 +1,4 @@
 
 fis.config.merge({
-	namespace: 'index'
+    namespace: 'index'
 });

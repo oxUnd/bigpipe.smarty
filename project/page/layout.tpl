@@ -12,9 +12,9 @@
         var elms = document.getElementsByTagName('a');
         for (var i = 0, len = elms.length; i < len; i++) {
             var elm = elms[i];
+            console.log(elm.getAttribute('data-href'));
             if (elm.getAttribute('data-href')) {
                 elm.onclick = function() {
-                    console.log(this);
                     var id = this.getAttribute('data-area');
                     var link = this.getAttribute('data-href');
                     BigPipe.refresh(link + '?pagelets=' + id, id);

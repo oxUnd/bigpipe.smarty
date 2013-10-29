@@ -53,9 +53,9 @@
                 </div>
             </div>
         </div>
-        <div id="pager">
+        {%widget_block pagelet_id="pager"%}
             {%block name="main"%}{%/block%}
-        </div>
+        {%/widget_block%}
     </div>
 {%/body%}
 {%/html%}
