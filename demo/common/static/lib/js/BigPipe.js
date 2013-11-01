@@ -193,14 +193,13 @@ var BigPipe = function() {
         }
 
         var url = location.href.split('#')[0] +
-            (location.search? '&' : '?') + args.join('&') + '&force_mode=1';
-
+            (location.search? '&' : '?') + args.join('&');
         // 异步请求pagelets
         ajax(url, function(res) {
             var data = parseJSON(res);
-
+            pagelets = data.pagelets;
             process(data.resource_map, function() {
-                render(data.pagelets);
+                render();
             });
         });
     }

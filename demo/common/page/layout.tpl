@@ -4,10 +4,6 @@
     <meta charset="utf-8" />
     <script type="text/javascript">
         window.onload = function() {
-            var elms = document.getElementsByClassName('g_fis_bigrender');
-            for (var i = 0, len = elms.length; i < len; i++) {
-                window['eval'] && window['eval'](elms[i].innerHTML);
-            }
             var elms = document.getElementsByTagName('a');
             for (var i = 0, len = elms.length; i < len; i++) {
                 var elm = elms[i];
@@ -25,6 +21,7 @@
 
     {%require name="common:static/lib/css/base.css"%}
     {%require name="common:static/lib/js/lib.js"%}
+    {%require name="common:static/lib/js/BigPipe.js"%}
     {%require name="common:static/css/layout.css"%}
 
 {%/head%}

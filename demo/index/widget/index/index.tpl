@@ -20,3 +20,10 @@
         </div>
     </div>
 </div>
+{%widget name="index:widget/asyncload/asyncload.tpl" mode="quickling" pagelet_id="getit"%}
+{%script%}
+var elms = document.getElementsByClassName('g_fis_bigrender');
+    for (var i = 0, len = elms.length; i < len; i++) {
+    window['eval'] && window['eval'](elms[i].innerHTML);
+}
+{%/script%}
