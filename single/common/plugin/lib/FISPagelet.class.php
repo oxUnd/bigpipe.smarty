@@ -228,6 +228,7 @@ class FISPagelet {
 
             if($pagelet['hit'] && !$pagelet['async']){
                 unset($pagelet['hit']);
+                unset($pagelet['async']);
                 $pagelet['html'] = $html;
                 self::$_pagelets[] = &$pagelet;
                 unset($pagelet);
