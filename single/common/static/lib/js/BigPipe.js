@@ -1,9 +1,6 @@
 var BigPipe = function() {
 
     var pagelets = [],
-        styles = {},
-        Cache = {},
-        times_t = 0,
         container,
         containerId,
         onReady;
@@ -122,28 +119,6 @@ var BigPipe = function() {
             : loadNext();
     }
 
-
-    function execute(contents) {
-        var js = contents[0];
-        if (js.length > 0) {
-            window.eval( js.join(';') );
-        }
-
-        var css = contents[1];
-        if (css.length > 0) {
-            css = css.join('\n');
-            if (! (css in styles)) {
-                styles[css] = true;
-
-                var node = document.createElement('style');
-                node.innerHTML = css;
-                document.getElementsByTagName('head')[0].appendChild(node);
-            }
-        }
-
-        render();
-    }
-
     function init(arg) {
 
     }
@@ -154,6 +129,7 @@ var BigPipe = function() {
     function register(obj) {
         process(obj, function() {
             render();
+            onReady();
         });
     }
 
@@ -166,7 +142,6 @@ var BigPipe = function() {
             if (id == containerId) {
                 var json = parseJSON(data);
                 onPagelets(json, id);
-
             }
         });
     }
@@ -226,12 +201,9 @@ var BigPipe = function() {
         container.innerHTML = '';
         pagelets = obj.pagelets;
 
-        if (obj.script) {
-            var script = (obj.script.pagelet || '') + ';' + (obj.script.page || '');
-            onReady = new Function(script);
-        }
-
-        register(obj.resource_map);
+        process(obj.resource_map, function() {
+            render();
+        });
     }
 
     function onPageReady(f) {

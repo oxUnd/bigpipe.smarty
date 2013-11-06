@@ -26,19 +26,11 @@ class FISPagelet {
         array(),
         array()
     );
-    /**
-     * array(
-     *     js: array(), css: array(), script: array(), async: array()
-     * )
-     * @var array
-     */
-    static private $_collection = array();
     static private $_session_id = 0;
     static private $_context = array();
     static private $_contextMap = array();
     static private $_pagelets = array();
     static private $_title = '';
-    static private $_widget_html = array();
     /**
      * 解析模式
      * @var number
@@ -163,6 +155,7 @@ class FISPagelet {
 
         switch(self::$widget_mode) {
             case self::MODE_NOSCRIPT:
+                echo '<div id="' . $id . '">';
                 break;
             case self::MODE_QUICKLING:
                 $hit = self::$filter[$id];
@@ -244,9 +237,8 @@ class FISPagelet {
                 self::$_context = null;
             }
             self::$widget_mode = self::$mode;
-            //收集
-            echo '</div>';
         }
+        echo '</div>';
         return $ret;
     }
 
@@ -369,12 +361,21 @@ class FISPagelet {
                 break;
             case self::MODE_BIGPIPE:
                 $external = FISResource::getArrStaticCollection();
+                $page_script = $external['script'];
+                unset($external['script']);
                 $html = self::renderStatic(
                     $html,
                     $external,
                     true
                 );
                 $html .= "\n";
+                $html .= '<script type="text/javascript">';
+                $html .= 'BigPipe.onPageReady(function() {';
+                $html .= implode("\n", $page_script);
+                $html .= '});';
+                $html .= '</script>';
+                $html .= "\n";
+
                 if ($res['script']) {
                     $res['script'] = implode("\n", $res['script']);
                 }

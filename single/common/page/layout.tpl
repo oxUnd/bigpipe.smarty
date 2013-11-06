@@ -2,28 +2,18 @@
 {%head%}
     {%title%}{%$title%}{%/title%}
     <meta charset="utf-8" />
-    <script type="text/javascript">
-        window.onload = function() {
-            var elms = document.getElementsByTagName('a');
-            for (var i = 0, len = elms.length; i < len; i++) {
-                var elm = elms[i];
-                if (elm.getAttribute('data-href')) {
-                    elm.onclick = function() {
-                        var id = this.getAttribute('data-area');
-                        var link = this.getAttribute('data-href');
-                        console.log([link, id]);
-                        BigPipe.refresh(link, id);
-                    };
-                }
-            }
-        };
-    </script>
 
     {%require name="common:static/lib/css/base.css"%}
     {%require name="common:static/lib/js/lib.js"%}
     {%require name="common:static/lib/js/BigPipe.js"%}
     {%require name="common:static/css/layout.css"%}
-
+    {%require name="common:static/lib/js/spljs/spljs.js"%}
+    {%script%}
+        SplJs.init();
+        SplJs.start({
+            targets: ['a', '.message-item']
+        });
+    {%/script%}
 {%/head%}
 
 {%body%}

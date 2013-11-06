@@ -19,10 +19,8 @@
     </div>
     {%/foreach%}
     {%script%}
-        
+        SplJs.start({targets:['.message-item']});
         $('.message-item').click(function() {
-            var id = $(this).attr('data-area');
-            BigPipe.refresh($(this).attr('data-href') + '&pagelets=' + id, id);
             $('.message-item').removeClass('message-item-selected');
             $(this).addClass('message-item-selected');
             $(this).removeClass('message-item-unread');
