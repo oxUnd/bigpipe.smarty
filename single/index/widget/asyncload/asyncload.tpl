@@ -1,3 +1,3 @@
-<div>
-asyncload widget
+<div id="asyncload">
+    字体
 </div>

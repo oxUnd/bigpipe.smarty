@@ -17,10 +17,10 @@
 
         <div id="detail" class="message-content-body">
             {%$current.message_content%}
+            {%widget name="index:widget/asyncload/asyncload.tpl" mode="quickling" pagelet_id="getit"%}
         </div>
     </div>
 </div>
-{%widget name="index:widget/asyncload/asyncload.tpl" mode="quickling" pagelet_id="getit"%}
 {%script%}
 var elms = document.getElementsByClassName('g_fis_bigrender');
     for (var i = 0, len = elms.length; i < len; i++) {
