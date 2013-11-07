@@ -148,7 +148,8 @@ class FISPagelet {
         }
 
         $parent_id = $has_parent ? self::$_context['id'] : '';
-        $id = empty($id) ? '__elm_' . $parent_id . '_' . self::$_session_id ++ : $id;
+        $qk_flag = self::$mode == self::MODE_QUICKLING ? '_qk_' : '';
+        $id = empty($id) ? '__elm_' . $parent_id . '_' . $qk_flag . self::$_session_id ++ : $id;
 
         //widget是否命中，默认命中
         $hit = true;
