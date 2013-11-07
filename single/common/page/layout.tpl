@@ -27,7 +27,7 @@
 
                 <div class="pure-menu pure-menu-open">
                     <ul>
-                        <li><a data-href="/index/page/index?pagelets[]=pagelet_list&pagelets[]=pagelet_detail" data-area="pager">Inbox <span class="email-count">(2)</span></a></li>
+                        <li><a data-href="/index/page/index" data-area="pager">Inbox <span class="email-count">(2)</span></a></li>
                         <li><a href="#">Important</a></li>
                         <li><a href="#">Sent</a></li>
                         <li><a href="#">Drafts</a></li>
