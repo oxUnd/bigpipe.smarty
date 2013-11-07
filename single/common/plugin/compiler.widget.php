@@ -2,14 +2,18 @@
 
 function smarty_compiler_widget($arrParams,  $smarty){
     $strResourceApiPath = preg_replace('/[\\/\\\\]+/', '/', dirname(__FILE__) . '/lib/FISPagelet.class.php');
-    $strCode = '<?php if(!class_exists(\'FISPagelet\', false)){require_once(\'' . $strResourceApiPath . '\');}';
+    $strCode = '<?php if(!class_exists(\'FISPagelet\')){require_once(\'' . $strResourceApiPath . '\');}';
     $strCall = $arrParams['call'];
     $bHasCall = isset($strCall);
     $strName = $arrParams['name'];
     $strMode = isset($arrParams['mode']) ? $arrParams['mode'] : 'null';
+    $strGroup = isset($arrParams['group']) ? $arrParams['group'] : 'null';
     $strPageletId = isset($arrParams['pagelet_id']) ? $arrParams['pagelet_id'] : 'null';
 
     unset($arrParams['name']);
+    unset($arrParams['mode']);
+    unset($arrParams['group']);
+
     //construct params
     $arrFuncParams = array();
     foreach ($arrParams as $_key => $_value) {
@@ -30,7 +34,7 @@ function smarty_compiler_widget($arrParams,  $smarty){
         $strCode .= '}else{';
     }
     if($strName){
-        $strCode .= '$hit = FISPagelet::start(' . $strPageletId . ', ' . $strMode . ');';
+        $strCode .= '$hit = FISPagelet::start(' . $strPageletId . ', ' . $strMode . ',' .$strGroup.');';
         $strCode .= ' if ($hit) {';
         $strCode .= '$_tpl_path=FISPagelet::getUri(' . $strName . ',$_smarty_tpl->smarty);';
         $strCode .= 'if(isset($_tpl_path)){';
