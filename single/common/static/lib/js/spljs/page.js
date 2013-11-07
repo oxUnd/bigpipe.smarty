@@ -3,6 +3,7 @@ SplJs.init = function(rules) {
     window.addEventListener('popstate', function(e){
         var state = e.state;
         if (state) {
+            state.forword = false;
             SplJs.redirect(state.referer, state);
         }
     }, false);
@@ -23,24 +24,26 @@ SplJs.redirect = function(url, options) {
         pagelets: [],
         containerId: null,
         referer: SplJs.path.getCurPageUrl(),
-        forword: true
+        forword: true,
+        replace: false
     };
     options = merge(default_options, options);
+    if (window.history.pushState) {
+        if (options.forword) {
+            if (options.replace) {
+                window.history.replaceState(options, null, url);
+            } else {
+                window.history.pushState(options, null, url);
+            }
+        }
+    }
+
     if (options.pagelets.length > 0) {
         var pagelets = [];
         for (var i = 0, len = options.pagelets.length; i < len; i++) {
             pagelets.push('pagelets[]=' + options.pagelets[i]);
         }
         url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
-    }
-    if (window.history.pushState) {
-        if (options.forword) {
-            options.forword = false;
-            window.history.pushState(options, url);
-        } else {
-            options.forword = true;
-            window.history.replaceState(options, url);
-        }
     }
 
     BigPipe.refresh(url, options.containerId);
