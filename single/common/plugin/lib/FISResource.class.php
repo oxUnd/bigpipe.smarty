@@ -258,6 +258,7 @@ class FISResource {
     /**
      * 已经分析到的组件在后续被同步使用时在异步组里删除。
      * @param $strName
+     * @return bool
      */
     private static function delAsyncDeps($strName) {
         if (isset(self::$arrAsyncDeleted[$strName])) {
