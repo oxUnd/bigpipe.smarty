@@ -1,12 +1,14 @@
 !function() {
     var Rules = function() {
         /**
-         * {
-         *  <reg string>: {
+         * [
+         *  {
          *      'containerId': <string>,
-         *      'pagetets': <array>
+         *      'pagetets': <array>,
+         *      'route': <regexp>,
+         *      'pageId': <string>
          *  }
-         * }
+         * ]
          * @type {{}}
          */
         this.rules = {};
@@ -29,12 +31,11 @@
             if (this.rules.length == 0) {
                 return false;
             }
-            for (var i in this.rules) {
-                if (this.rules.hasOwnProperty(i)) {
-                    var reg = new RegExp(i, 'i');
-                    if (reg.test(url)) {
-                        return this.rules[i];
-                    }
+            for (var i = 0, len = this.rules.length; i < len; i++) {
+                var rule = this.rules[i];
+                if (Object.prototype.toString.apply(rule['route']) == '[Object RegExp]'
+                    &&  rule['route'].test(url)) {
+                    return rule;
                 }
             }
             return false;

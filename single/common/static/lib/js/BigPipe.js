@@ -3,6 +3,8 @@ var BigPipe = function() {
     var pagelets = [],
         container,
         containerId,
+        pageUrl,
+        resource,
         onReady;
 
     function parseJSON (json) {
@@ -66,8 +68,12 @@ var BigPipe = function() {
                 document.body.appendChild(dom);
             }
         }
-
         dom.innerHTML = obj.html || getCommentById(obj.html_id);
+        trigger('pagerendercomplete', {
+            'url': pageUrl,
+            'containerId': dom.id,
+            'resource': resource
+        });
     }
 
 
@@ -123,9 +129,6 @@ var BigPipe = function() {
 
     }
 
-    /**
-     *
-     */
     function register(obj) {
         process(obj, function() {
             render();
@@ -140,7 +143,9 @@ var BigPipe = function() {
         containerId = id;
         ajax(url, function(data) {
             if (id == containerId) {
+                pageUrl = url;
                 var json = parseJSON(data);
+                resource = json;
                 onPagelets(json, id);
             }
         });
@@ -172,6 +177,8 @@ var BigPipe = function() {
         // 异步请求pagelets
         ajax(url, function(res) {
             var data = parseJSON(res);
+            resource = data;
+            pageUrl = url;
             pagelets = data.pagelets;
             process(data.resource_map, function() {
                 render();
@@ -201,6 +208,8 @@ var BigPipe = function() {
         container.innerHTML = '';
         pagelets = obj.pagelets;
 
+        trigger('pagearrived', pagelets);
+
         process(obj.resource_map, function() {
             render();
         });
@@ -208,6 +217,7 @@ var BigPipe = function() {
 
     function onPageReady(f) {
         onReady = f;
+        trigger('pageready', pagelets);
     }
 
     function onPageChange(pid) {
@@ -252,6 +262,8 @@ var BigPipe = function() {
 
         onPageletArrived: onPageletArrived,
         onPagelets: onPagelets,
-        on: on
+
+        on: on,
+        trigger: trigger
     }
 }();

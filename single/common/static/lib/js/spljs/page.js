@@ -1,3 +1,11 @@
+//
+// require zepto.js
+//
+
+var CACHE_TIMES = 10;
+/**
+ * @param rules
+ */
 SplJs.init = function(rules) {
     SplJs.rules.init(rules);
     window.addEventListener('popstate', function(e){
@@ -7,6 +15,7 @@ SplJs.init = function(rules) {
             SplJs.redirect(state.referer, state);
         }
     }, false);
+    BigPipe.on('pagerendercomplete', this.onPagerendered, this);    // 执行完页面的ready函数后触发
 };
 
 /**
@@ -20,6 +29,7 @@ SplJs.init = function(rules) {
  * @param options
  */
 SplJs.redirect = function(url, options) {
+    url = SplJs.path.getUrlWithoutHash(url);
     var default_options = {
         pagelets: [],
         containerId: null,
@@ -45,8 +55,13 @@ SplJs.redirect = function(url, options) {
         }
         url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
     }
-
-    BigPipe.refresh(url, options.containerId);
+    var cache = SplJs.cache.get(url);
+    if (cache && cache.times <= CACHE_TIMES) {
+        BigPipe.onPagelets(cache.handle, options.containerId);
+        SplJs.cache.updateTimes(url);
+    } else {
+        BigPipe.refresh(url, options.containerId);
+    }
 };
 
 SplJs.start = function(params) {
@@ -58,6 +73,7 @@ SplJs.start = function(params) {
 
     //不支持pushState，直接跳过
     if (!window.history.pushState) return;
+
     for (var k = 0, target_count = params.targets.length; k < target_count; k++) {
         var links = $(params.targets[k]);
         for (var i = 0, len = links.length; i < len; i++) {
@@ -87,5 +103,17 @@ SplJs.start = function(params) {
             }
         }
     }
+};
+
+/**
+ * obj = {
+ *      url: <string>,
+ *      containerId: <stirng>,
+ *      pagelets: <array>
+ * }
+ * @param obj
+ */
+SplJs.onPagerendered = function (obj) {
+    SplJs.cache.save(obj.url, obj.resource);
 };
 
