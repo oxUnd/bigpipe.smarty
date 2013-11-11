@@ -57,11 +57,12 @@ var App = function() {
             var elm = et.target;
             if (elm.hasAttribute('data-href')) {
                 var v = elm.getAttribute('data-area');
+                et.stopPropagation();
+                et.preventDefault();
                 redirect(elm.getAttribute('data-href'), {
                     containerId: v,
                     pagelets: [v]
                 });
-                et.preventDefault();
             }
         }
     }
