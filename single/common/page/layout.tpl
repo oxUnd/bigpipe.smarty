@@ -7,12 +7,33 @@
     {%require name="common:static/lib/js/lib.js"%}
     {%require name="common:static/lib/js/BigPipe.js"%}
     {%require name="common:static/css/layout.css"%}
-    {%require name="common:static/lib/js/spljs/spljs.js"%}
+    {%require name="common:static/lib/js/spljs/page.js"%}
     {%script%}
-        SplJs.init();
-        SplJs.start({
-            targets: ['a', '.message-item']
+        App.init({
+            enableProxy: function(event) {
+                var cls = ['message-item'];
+                var tags = ['A'];
+                function matchClassName(elm) {
+                    for (var i = 0, len = cls.length; i < len; i++) {
+                        if (elm.className && elm.className.indexOf(cls[i]) != -1) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                function matchTagName(elm) {
+                    for (var i = 0, len = tags.length; i < len; i++) {
+                        if (elm.tagName == tags[i]) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                return matchTagName(event.target) || matchClassName(event.target);
+            }
         });
+        App.start();
     {%/script%}
 {%/head%}
 
