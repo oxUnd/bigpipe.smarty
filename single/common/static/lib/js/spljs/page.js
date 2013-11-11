@@ -125,7 +125,7 @@ var App = function() {
     function start() {
         var body = document.getElementsByTagName('body')[0];
         if (!body) {
-            console || console.error("not found body element from this dom!");
+            console || console.error("no element: 'body'!");
         }
 
         body.addEventListener('click', proxy, false);
