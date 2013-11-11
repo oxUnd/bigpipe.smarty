@@ -206,7 +206,7 @@ class FISPagelet {
                 ob_start();
                 break;
         }
-        return true;
+        return $hit;
     }
 
     /**
