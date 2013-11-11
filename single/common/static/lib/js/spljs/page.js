@@ -1,119 +1,130 @@
-//
-// require zepto.js
-//
+var App = function() {
+    var $ = jQuery || Zepto;
+    var enableProxy = null;
 
-var CACHE_TIMES = 10;
-/**
- * @param rules
- */
-SplJs.init = function(rules) {
-    SplJs.rules.init(rules);
-    window.addEventListener('popstate', function(e){
-        var state = e.state;
-        if (state) {
-            state.forword = false;
-            SplJs.redirect(state.referer, state);
-        }
-    }, false);
-    BigPipe.on('pagerendercomplete', this.onPagerendered, this);    // 执行完页面的ready函数后触发
-};
+    function init(params) {
+        /**
+         * 默认参数 {
+         *      enableProxy: <function> //判断那些元素需要绑定切页逻辑
+         * }
+         * @type {{enableProxy: Function}}
+         */
+        var defaultParams = {
+            enableProxy: function(e) {
+                return e.target.tagName == 'A';
+            }
+        };
+        params = merge(defaultParams, params);
+        enableProxy = params.enableProxy;
+        window.addEventListener('popstate', function(e){
+            var state = e.state;
+            if (state) {
+                state.forword = false;
+                redirect(state.referer, state);
+            }
+        }, false);
+        BigPipe.on('pagerendercomplete', onPagerendered, this);    // 执行完页面的ready函数后触发
+    }
 
-/**
- * options = {
- *  pagelets: []
- *  containerId: '',
- *  referer: <url>,
- *  forword: true or false
- * }
- * @param url
- * @param options
- */
-SplJs.redirect = function(url, options) {
-    url = SplJs.path.getUrlWithoutHash(url);
-    var default_options = {
-        pagelets: [],
-        containerId: null,
-        referer: SplJs.path.getCurPageUrl(),
-        forword: true,
-        replace: false
-    };
-    options = merge(default_options, options);
-    if (window.history.pushState) {
-        if (options.forword) {
-            if (options.replace) {
-                window.history.replaceState(options, null, url);
-            } else {
-                window.history.pushState(options, null, url);
+    /**
+     * 简单merge两个对象
+     * @param _old
+     * @param _new
+     * @returns {*}
+     */
+    function merge(_old, _new) {
+        for (var i in _new) {
+            if (_new.hasOwnProperty(i)) {
+                _old[i] = _new[i];
             }
         }
+        return _old;
     }
 
-    if (options.pagelets.length > 0) {
-        var pagelets = [];
-        for (var i = 0, len = options.pagelets.length; i < len; i++) {
-            pagelets.push('pagelets[]=' + options.pagelets[i]);
-        }
-        url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
-    }
-    var cache = SplJs.cache.get(url);
-    if (cache && cache.times <= CACHE_TIMES) {
-        BigPipe.onPagelets(cache.handle, options.containerId);
-        SplJs.cache.updateTimes(url);
-    } else {
-        BigPipe.refresh(url, options.containerId);
-    }
-};
-
-SplJs.start = function(params) {
-    var default_params = {
-        targets: ['a']
-    };
-
-    params = merge(default_params, params);
-
-    //不支持pushState，直接跳过
-    if (!window.history.pushState) return;
-
-    for (var k = 0, target_count = params.targets.length; k < target_count; k++) {
-        var links = $(params.targets[k]);
-        for (var i = 0, len = links.length; i < len; i++) {
-            var link = $(links[i]);
-            if (!link.attr('onclicked')) {
-                link.attr('onclicked', 'true');
-                link.click(function(e) {
-                    if (this.hasAttribute('data-href')) {
-                        var v = this.getAttribute('data-area');
-                        SplJs.redirect(this.getAttribute('data-href'), {
-                            containerId: v,
-                            pagelets: [v]
-                        });
-                        e.preventDefault();
-                    } else if (this.hasAttribute('href')) {
-                        var url = this.getAttribute('href');
-                        var options = SplJs.rules.match(url);
-                        if (options) {
-                            SplJs.redirect(url, {
-                                containerId: options.containerId,
-                                pagelets: options.pagelets
-                            });
-                            e.preventDefault();
-                        }
-                    }
+    /**
+     * 事件代理
+     * @param et
+     */
+    function proxy(et) {
+        if (enableProxy(et)) {
+            var elm = et.target;
+            if (elm.hasAttribute('data-href')) {
+                var v = elm.getAttribute('data-area');
+                redirect(elm.getAttribute('data-href'), {
+                    containerId: v,
+                    pagelets: [v]
                 });
+                et.preventDefault();
             }
         }
     }
-};
 
-/**
- * obj = {
- *      url: <string>,
- *      containerId: <stirng>,
- *      pagelets: <array>
- * }
- * @param obj
- */
-SplJs.onPagerendered = function (obj) {
-    SplJs.cache.save(obj.url, obj.resource);
-};
+    function getCurrentPageUrl() {
+        var href = window.location.href;
+        return href;
+    }
 
+    function getUrlWithoutHash(url) {
+        var href = url;
+        if (href.indexOf('#') !== -1) {
+            href = href.substr(0, href.indexOf('#'));
+        }
+        return href;
+    }
+
+    /**
+     * 跳转页面
+     * @param url
+     * @param options
+     */
+    function redirect(url, options) {
+        url = getUrlWithoutHash(url);
+        var default_options = {
+            pagelets: [],
+            containerId: null,
+            referer: getCurrentPageUrl(),
+            forword: true,
+            replace: false
+        };
+        options = merge(default_options, options);
+        if (window.history.pushState) {
+            if (options.forword) {
+                if (options.replace) {
+                    window.history.replaceState(options, null, url);
+                } else {
+                    window.history.pushState(options, null, url);
+                }
+            }
+        }
+
+        if (options.pagelets.length > 0) {
+            var pagelets = [];
+            for (var i = 0, len = options.pagelets.length; i < len; i++) {
+                pagelets.push('pagelets[]=' + options.pagelets[i]);
+            }
+            url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
+        }
+
+        BigPipe.refresh(url, options.containerId);
+
+    }
+
+    function start() {
+        var body = document.getElementsByTagName('body')[0];
+        if (!body) {
+            console || console.error("not found body element from this dom!");
+        }
+
+        body.addEventListener('click', proxy, false);
+    }
+
+    function onPagerendered(obj) {
+
+    }
+
+    return {
+        init: init,
+        start: start,
+        redirect: redirect,
+    };
+}();
