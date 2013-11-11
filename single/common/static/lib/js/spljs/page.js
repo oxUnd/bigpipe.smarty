@@ -1,13 +1,16 @@
 var App = function() {
-    var $ = jQuery || Zepto;
+    //是否绑定切换页面逻辑
     var enableProxy = null;
+    //resourceMap cache
     var cache = {};
+    //缓存时间
     var cacheMaxTime = 0;
 
     function init(params) {
         /**
          * 默认参数 {
          *      enableProxy: <function> //判断那些元素需要绑定切页逻辑
+         *      cacheMaxTime: <integer> //缓存存活时间，默认10s
          * }
          * @type {{enableProxy: Function}}
          */
@@ -109,9 +112,12 @@ var App = function() {
             url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
         }
         var now = (new Date()).getTime();
+        //page render start
+        trigger('onPageRenderStart');
         if (cache[url] && now - cache[url].time <= cacheMaxTime) {
             BigPipe.onPagelets(cache[url]['resource'], options.containerId);
         } else {
+            delete cache[url];
             BigPipe.refresh(url, options.containerId);
         }
     }
@@ -126,15 +132,46 @@ var App = function() {
     }
 
     function onPagerendered(obj) {
-        cache[obj.url] = {
-            resource: obj.resource,
-            time: (new Date()).getTime()
-        };
+        if (cache[obj.url]) {
+            cache[obj.url] = {
+                resource: obj.resource,
+                time: (new Date()).getTime()
+            };
+        }
+        //page render end
+        trigger('onPageRenderComplete')
+    }
+
+    // -------------------- 事件队列 --------------------
+    var SLICE = [].slice;
+    var events = {};
+
+    function trigger(type /* args... */) {
+        var list = events[type];
+        if (!list) {
+            return;
+        }
+
+        var arg = SLICE.call(arguments, 1);
+        for(var i = 0, j = list.length; i < j; i++) {
+            var cb = list[i];
+            if (cb.f.apply(cb.o, arg) === false) {
+                break;
+            }
+        }
+    }
+
+    function on(type, listener, context) {
+        var queue = events[type] || (events[type] = []);
+        queue.push({f: listener, o: context});
     }
 
     return {
         init: init,
         start: start,
-        redirect: redirect
+        redirect: redirect,
+
+        on: on,
+        trigger: trigger
     };
 }();
