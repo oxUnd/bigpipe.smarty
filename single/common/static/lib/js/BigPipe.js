@@ -69,11 +69,6 @@ var BigPipe = function() {
             }
         }
         dom.innerHTML = obj.html || getCommentById(obj.html_id);
-        trigger('pagerendercomplete', {
-            'url': pageUrl,
-            'containerId': dom.id,
-            'resource': resource
-        });
     }
 
 
@@ -93,6 +88,11 @@ var BigPipe = function() {
         for(i = 0; i < n; i++) {
             renderPagelet(pagelets[i], pageletsMap, rendered);
         }
+
+        trigger('pagerendercomplete', {
+            'url': pageUrl,
+            'resource': resource
+        });
     }
 
 
@@ -123,10 +123,6 @@ var BigPipe = function() {
         rm.css
             ? LazyLoad.css(rm.css.reverse(), loadNext)
             : loadNext();
-    }
-
-    function init(arg) {
-
     }
 
     function register(obj) {
@@ -252,7 +248,6 @@ var BigPipe = function() {
 
 
     return {
-        init: init,
         asyncLoad: asyncLoad,
         register: register,
         refresh: refresh,
