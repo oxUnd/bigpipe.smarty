@@ -1,6 +1,8 @@
 var App = function() {
     var $ = jQuery || Zepto;
     var enableProxy = null;
+    var cache = {};
+    var cacheMaxTime = 0;
 
     function init(params) {
         /**
@@ -12,10 +14,12 @@ var App = function() {
         var defaultParams = {
             enableProxy: function(e) {
                 return e.target.tagName == 'A';
-            }
+            },
+            cacheMaxTime: 10000
         };
         params = merge(defaultParams, params);
         enableProxy = params.enableProxy;
+        cacheMaxTime = params.cacheMaxTime;
         window.addEventListener('popstate', function(e){
             var state = e.state;
             if (state) {
@@ -104,9 +108,12 @@ var App = function() {
             }
             url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
         }
-
-        BigPipe.refresh(url, options.containerId);
-
+        var now = (new Date()).getTime();
+        if (cache[url] && now - cache[url].time <= cacheMaxTime) {
+            BigPipe.onPagelets(cache[url]['resource'], options.containerId);
+        } else {
+            BigPipe.refresh(url, options.containerId);
+        }
     }
 
     function start() {
@@ -119,12 +126,15 @@ var App = function() {
     }
 
     function onPagerendered(obj) {
-
+        cache[obj.url] = {
+            resource: obj.resource,
+            time: (new Date()).getTime()
+        };
     }
 
     return {
         init: init,
         start: start,
-        redirect: redirect,
+        redirect: redirect
     };
 }();
