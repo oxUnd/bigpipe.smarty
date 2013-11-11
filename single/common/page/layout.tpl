@@ -33,6 +33,14 @@
                 return matchTagName(event.target) || matchClassName(event.target);
             }
         });
+        App.on('onPageRenderStart', function() {
+            console.log('Page Start', (new Date()).getTime());
+        });
+
+        App.on('onPageRenderComplete', function() {
+            console.log('Page End', (new Date()).getTime());
+        });
+
         App.start();
     {%/script%}
 {%/head%}
