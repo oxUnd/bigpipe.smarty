@@ -321,7 +321,7 @@ class FISPagelet {
         $replace = array();
         foreach (self::$_pagelet_group as $group => $ids) {
             $search[] = '<!--' . $group . '-->';
-            $replace[] = '<textarea class="g_fis_bigrender_'.$group.'" style="display: none">BigPipe.asyncLoad([{id: "'.
+            $replace[] = '<textarea class="g_fis_bigrender g_fis_bigrender_'.$group.'" style="display: none">BigPipe.asyncLoad([{id: "'.
                 implode('"},{id:"', $ids)
             .'"}])</textarea>';
         }
