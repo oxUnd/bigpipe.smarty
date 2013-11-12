@@ -242,7 +242,6 @@ class FISPagelet {
             }
             $parent_id = self::$_context['parent_id'];
             if(isset($parent_id)){
-
                 self::$_context = self::$_contextMap[$parent_id];
                 unset(self::$_contextMap[$parent_id]);
             } else {

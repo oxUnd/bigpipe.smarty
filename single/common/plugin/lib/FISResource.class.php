@@ -58,6 +58,7 @@ class FISResource {
             foreach (self::$arrWidgetRequireAsync as $key => $val) {
                 foreach ($val as $id => $info) {
                     unset(self::$arrLoaded[$id]);
+                    unset(self::$arrAsyncDeleted[$id]);
                 }
             }
             $ret['async'] = self::getResourceMap(self::$arrWidgetRequireAsync);
@@ -67,6 +68,7 @@ class FISResource {
             foreach ($val as $uri) {
                 foreach (array_keys(self::$arrLoaded, $uri) as $id) {
                     unset(self::$arrLoaded[$id]);
+                    unset(self::$arrAsyncDeleted[$id]);
                 }
             }
         }
@@ -87,7 +89,7 @@ class FISResource {
     }
 
     public static function addStatic($uri, $type) {
-        if (self::$isInnerWidget && !in_array($uri, self::$arrStaticCollection[$type])) {
+        if (self::$isInnerWidget) {
             self::$arrWidgetStatic[$type][] = $uri;
         } else {
             self::$arrStaticCollection[$type][] = $uri;
@@ -113,8 +115,9 @@ class FISResource {
     public static function getAsync($id, $type) {
         if (self::$isInnerWidget) {
             return self::$arrWidgetRequireAsync[$type][$id];
+        } else {
+            return self::$arrRequireAsyncCollection[$type][$id];
         }
-        return self::$arrRequireAsyncCollection[$type][$id];
     }
 
     //设置framewok mod.js
