@@ -30,7 +30,8 @@ var App = function() {
                 redirect(state.referer, state);
             }
         }, false);
-        BigPipe.on('pagerendercomplete', onPagerendered, this);    // 执行完页面的ready函数后触发
+        BigPipe.on('pagerenderstart', onPageRenderStart, this);
+        BigPipe.on('pagerendercomplete', onPageRendered, this);    // 执行完页面的ready函数后触发
     }
 
     /**
@@ -113,8 +114,6 @@ var App = function() {
             url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
         }
         var now = (new Date()).getTime();
-        //page render start
-        trigger('onPageRenderStart');
         if (cache[url] && now - cache[url].time <= cacheMaxTime) {
             BigPipe.onPagelets(cache[url]['resource'], options.containerId);
         } else {
@@ -132,7 +131,12 @@ var App = function() {
         body.addEventListener('click', proxy, false);
     }
 
-    function onPagerendered(obj) {
+    function onPageRenderStart(obj) {
+        //page render start
+        trigger('onPageRenderStart');
+    }
+
+    function onPageRendered(obj) {
         if (cache[obj.url]) {
             cache[obj.url] = {
                 resource: obj.resource,

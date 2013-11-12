@@ -73,6 +73,7 @@ var BigPipe = function() {
 
 
     function render() {
+        trigger('pagerenderstart');
         var i, n = pagelets.length;
         var pageletsMap = {};
         var rendered = {};
