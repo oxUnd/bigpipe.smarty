@@ -20,3 +20,7 @@
         </div>
     </div>
 </div>
+
+{%script%}
+    require('./index.js');
+{%/script%}

@@ -24,6 +24,5 @@
             $(this).addClass('message-item-selected');
             $(this).removeClass('message-item-unread');
         });
-
     {%/script%}
 </div>
