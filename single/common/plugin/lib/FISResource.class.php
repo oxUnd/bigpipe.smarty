@@ -245,15 +245,16 @@ class FISResource {
      * @param bool $async   是否异步
      */
     private static function loadDeps($arrRes, $smarty, $async) {
+        if(isset($arrRes['deps'])){
+            foreach ($arrRes['deps'] as $strDep) {
+                self::load($strDep, $smarty, $async);
+            }
+        }
+
         //require.async
         if (isset($arrRes['extras']) && isset($arrRes['extras']['async'])) {
             foreach ($arrRes['extras']['async'] as $uri) {
                 self::load($uri, $smarty, true);
-            }
-        }
-        if(isset($arrRes['deps'])){
-            foreach ($arrRes['deps'] as $strDep) {
-                self::load($strDep, $smarty, $async);
             }
         }
     }
