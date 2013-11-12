@@ -19,7 +19,6 @@
     </div>
     {%/foreach%}
     {%script%}
-        SplJs.start({targets:['.message-item']});
         $('.message-item').click(function() {
             $('.message-item').removeClass('message-item-selected');
             $(this).addClass('message-item-selected');
