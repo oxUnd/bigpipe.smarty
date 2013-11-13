@@ -22,5 +22,6 @@
 </div>
 
 {%script%}
-    require('./index.js');
+    var _ = require('./index.js');
+    _.go();
 {%/script%}
