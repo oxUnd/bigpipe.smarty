@@ -1,11 +1,15 @@
 var BigPipe = function() {
 
     var pagelets = [],
+        loadedResource = {},
         container,
         containerId,
-        pageUrl,
+        pageUrl = location.pathname + (location.search ? "?" + location.search : ""),
         resource,
-        onReady;
+        resourceCache = {},
+        onReady,
+        LOADED = 1,
+        cacheMaxTime = 5 * 60 * 1000;
 
     function parseJSON (json) {
         return window.JSON? JSON.parse(json) : eval('(' + json + ')');
@@ -35,6 +39,7 @@ var BigPipe = function() {
         //
         var dom = document.getElementById(html_id);
         if (!dom) {
+            return;
             throw Error('[BigPipe] Cannot find comment `' + html_id + '`');
         }
         var html = dom.firstChild.nodeValue;
@@ -72,11 +77,11 @@ var BigPipe = function() {
     }
 
 
-    function render() {
-        trigger('pagerenderstart');
+    function render(options) {
         var i, n = pagelets.length;
         var pageletsMap = {};
         var rendered = {};
+        var options = options || {};
 
         //
         // pagelet.id => pagelet 映射表
@@ -90,10 +95,12 @@ var BigPipe = function() {
             renderPagelet(pagelets[i], pageletsMap, rendered);
         }
 
-        trigger('pagerendercomplete', {
-            'url': pageUrl,
-            'resource': resource
-        });
+        if(options.trigger === true) {
+            trigger('pagerendercomplete', {
+                'url': pageUrl,
+                'resource': resource
+            });
+        }
     }
 
 
@@ -101,8 +108,11 @@ var BigPipe = function() {
         if (rm.async) {
             require.resourceMap(rm.async);
         }
+        var css = getNeedLoad(rm.css);
 
         function loadNext() {
+            var js = getNeedLoad(rm.js);
+
             if (rm.style) {
                 var dom = document.createElement('style');
                 dom.innerHTML = rm.style;
@@ -111,8 +121,9 @@ var BigPipe = function() {
 
             cb();
 
-            if (rm.js) {
+            if (js) {
                 LazyLoad.js(rm.js, function() {
+                    recordLoaded(js);
                     rm.script && window.eval(rm.script);
                 });
             }
@@ -121,46 +132,114 @@ var BigPipe = function() {
             }
         }
 
-        rm.css
-            ? LazyLoad.css(rm.css.reverse(), loadNext)
+        css
+            ? LazyLoad.css(css.reverse(), function(){
+                recordLoaded(css);
+                loadNext();
+            })
             : loadNext();
+    }
+
+
+    /**
+     * 获取需要加载的资源列表
+     * @param  {array|string} resource 资源地址或者数组
+     * @return {array}        资源列表
+     */
+    function getNeedLoad (resource) {
+        var needLoad = [];
+        if(typeof resource === "string") {
+            needLoad = [resource]
+        } else if(Object.prototype.toString.call(resource) === "[object Array]") {
+            for (var i = 0; i < resource.length; i++) {
+                if(loadedResource[resource[i]] !== LOADED) {
+                    needLoad.push(resource[i]);
+                }
+            };
+        }
+
+        if(needLoad.length === 0) {
+            needLoad = null;
+        } 
+
+        return needLoad;
+
+    }
+
+    /**
+     * 记录下载资源
+     * @param  {array|string} resource 已下载的资源
+     * @return {void}         
+     */
+    function recordLoaded (resource) {
+        var needCache = resource;
+        if(typeof needCache === "string") {
+            needCache = [needCache];
+        }
+
+        for (var i = 0; i < needCache.length; i++) {
+            loadedResource[resource[i]] = LOADED;
+        };
+
     }
 
     function register(obj) {
         process(obj, function() {
-            render();
-            onReady();
-        });
-    }
-
-    function fetch(url, id) {
-        //
-        // Quickling请求局部
-        //
-        containerId = id;
-        ajax(url, function(data) {
-            if (id == containerId) {
-                pageUrl = url;
-                var json = parseJSON(data);
-                resource = json;
-                onPagelets(json, id);
+            render({trigger:true});
+            if(typeof onReady === "function") {
+                onReady();
             }
         });
     }
 
-    function refresh(url, id) {
-        fetch(url, id);
+    function fetch(url, id, callback) {
+        //
+        // Quickling请求局部
+        //
+        var currentPageUrl = location.href,
+            data;
+        containerId = id;
+
+        var success = function(data){
+            // 如果数据返回回来前，发生切页，则不再处理，否则当前页面有可能被干掉
+            if(currentPageUrl !== location.href) {
+                return;
+            }
+
+            if (id == containerId) {
+                pageUrl = url;
+                var json = parseJSON(data);
+                resource = json;
+                onPagelets(json, id, callback);
+            }
+        }
+
+        // 缓存策略
+        if(isCacheAvailable(url)) {
+            data = getCachedResource(url);
+            success(data);
+        } else {
+            ajax(url, function(data){
+                addResourceToCache(url,data);
+                success(data);
+            });
+        }
+    }
+
+    function refresh(url, id, callback) {
+        fetch(url, id, callback);
     }
 
     /**
      * 异步加载pagelets
      */
-    function asyncLoad(pageletIDs) {
+    function asyncLoad(pageletIDs, param) {
         if (!(pageletIDs instanceof Array)) {
             pageletIDs = [pageletIDs];
         }
 
-        var i, args = [];
+        var i, args = [],
+            currentPageUrl = location.href;
         for(i = pageletIDs.length - 1; i >= 0; i--) {
             var id = pageletIDs[i].id;
             if (!id) {
@@ -170,9 +249,15 @@ var BigPipe = function() {
         }
 
         var url = location.href.split('#')[0] +
-            (location.search? '&' : '?') + args.join('&');
+            (location.search? '&' : '?') + args.join('&') + '&' +param;
+
         // 异步请求pagelets
         ajax(url, function(res) {
+            // 如果数据返回回来前，发生切页，则不再处理，否则当前页面有可能被干掉
+            if(currentPageUrl !== location.href) {
+                return;
+            }
+
             var data = parseJSON(res);
             resource = data;
             pageUrl = url;
@@ -183,6 +268,23 @@ var BigPipe = function() {
         });
     }
 
+    function addResourceToCache(url,resource){
+        resourceCache[url] = {
+            data : resource,
+            time : Date.now()
+        };
+    }
+
+    function getCachedResource(url) {
+        if(resourceCache[url]) {
+            return resourceCache[url].data;
+        }
+    }
+
+    function isCacheAvailable(url) {
+        return !!resourceCache[url] && Date.now() - resourceCache[url].time <= cacheMaxTime;
+    }
+
     /**
      * 添加一个pagelet到缓冲队列
      */
@@ -190,7 +292,7 @@ var BigPipe = function() {
         pagelets.push(obj);
     }
 
-    function onPagelets(obj, id) {
+    function onPagelets(obj, id, callback) {
         //
         // Quickling请求响应
         //
@@ -208,7 +310,8 @@ var BigPipe = function() {
         trigger('pagearrived', pagelets);
 
         process(obj.resource_map, function() {
-            render();
+            render({trigger:true});
+            callback && callback();
         });
     }
 

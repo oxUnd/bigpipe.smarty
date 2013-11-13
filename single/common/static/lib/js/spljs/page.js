@@ -1,45 +1,105 @@
-var App = function() {
-    //是否绑定切换页面逻辑
-    var enableProxy = null;
-    //resourceMap cache
-    var cache = {};
-    //缓存时间
-    var cacheMaxTime = 0;
+(function(w, undefined) {
+    var exports = w,
+        cache = {},         // resourceMap cache
+        cacheMaxTime = 0,   // 缓存时间
+        appOptions = {},    // app页面管理的options
+        curPageUrl,
+        isPushState,
+        urlReg = /(http[s]?:\/\/.*?)?(\/.*?)(\?.*?)?(#.*?)?$/i;
 
-    function init(params) {
+    /**
+     * 启动页面管理
+     * @param  {Object} options 初始化参数
+     * @param {String} options["selector"] 全局代理元素的选择器匹配，写法同 document.querySeletor 函数
+     * @param {Number} options["cacheMaxTime"] 页面缓存时间
+     * @param {Function|RegExp} options["validate"] url验证方法，
+     * @return {void}
+     */
+
+    function start(options) {
+        console.log("start")
         /**
          * 默认参数 {
-         *      enableProxy: <function> //判断那些元素需要绑定切页逻辑
-         *      cacheMaxTime: <integer> //缓存存活时间，默认10s
+         *     selector : <string> // 代理元素的选择器规则
+         *     cacheMaxTime: <integer> //缓存存活时间，默认5min
          * }
-         * @type {{enableProxy: Function}}
          */
-        var defaultParams = {
-            enableProxy: function(e) {
-                return e.target.tagName == 'A';
-            },
-            cacheMaxTime: 10000
+        var defaultOptions = {
+            selector: "a,[data-href]",
+            cacheMaxTime: 5 * 60 * 1000,
+            pushState : true
         };
-        params = merge(defaultParams, params);
-        enableProxy = params.enableProxy;
-        cacheMaxTime = params.cacheMaxTime;
-        window.addEventListener('popstate', function(e){
-            var state = e.state;
-            if (state) {
-                state.forword = false;
-                redirect(state.referer, state);
-            }
-        }, false);
-        BigPipe.on('pagerenderstart', onPageRenderStart, this);
-        BigPipe.on('pagerendercomplete', onPageRendered, this);    // 执行完页面的ready函数后触发
+
+        appOptions = merge(defaultOptions, options);
+        cacheMaxTime = appOptions.cacheMaxTime;
+        isPushState = appOptions.pushState;
+
+        curPageUrl = getCurrentUrl();
+
+        // 绑定事件
+        bindEvent();
     }
 
     /**
+     * 事件绑定
+     * @return {void}
+     */
+
+    function bindEvent() {
+        // 处理history.back事件
+        window.addEventListener('popstate', onPopState, false);
+        // 全局接管指定元素点击事件
+        document.body.addEventListener('click', proxy, true);
+        // bigpipe回调事件
+        BigPipe.on('pagerendercomplete', onPagerendered, this); // 执行完页面的ready函数后触发
+    }
+
+
+    /**
+     * 处理popstate事件，响应历史记录返回
+     * @param  {PopStateEvent} e popstate事件对象
+     * @return {void}
+     */
+
+    function onPopState(e) {
+
+        var currentUrl = getCurrentUrl(),
+            pageUrl;
+
+        if (!curPageUrl || currentUrl === curPageUrl) {
+            return;
+        }
+
+        fetchPage(currentUrl);
+
+    }
+
+    /**
+     * 渲染完成事件函数
+     * @param  {String} obj bigpipe回传事件参数
+     * @return {void}
+     */
+
+    function onPagerendered(obj) {
+        cache[obj.url] = {
+            resource: obj.resource,
+            time: Date.now()
+        };
+        console.log("%cregister cache", "color:red;font-size:16px;", cache);
+        //page render end
+        trigger('onPageRenderComplete',{
+            url : obj.url
+        });
+    }
+
+
+    /**
      * 简单merge两个对象
-     * @param _old
-     * @param _new
+     * @param {object} _old
+     * @param {object} _new
      * @returns {*}
      */
+
     function merge(_old, _new) {
         for (var i in _new) {
             if (_new.hasOwnProperty(i)) {
@@ -51,114 +111,203 @@ var App = function() {
 
     /**
      * 事件代理
-     * @param et
+     * @param {MouseEvent} 点击事件对象
      */
-    function proxy(et) {
-        if (enableProxy(et)) {
-            var elm = et.target;
-            if (elm.hasAttribute('data-href')) {
-                var v = elm.getAttribute('data-area');
-                et.stopPropagation();
-                et.preventDefault();
-                redirect(elm.getAttribute('data-href'), {
-                    containerId: v,
-                    pagelets: [v]
-                });
+
+    function proxy(e) {
+        var element = e.target,
+            parent = element,
+            selector = appOptions.selector;
+
+        console.log("proxy", element, e);
+
+        while (parent !== document.body) {
+
+            if (matchSelector(parent, selector)) {
+
+                urlAttr = parent.tagName.toLowerCase() === "a" ? "href" : "data-href";
+                url = parent.getAttribute(urlAttr);
+
+                // 验证url, 可以自行配置url验证规则
+                if (validateUrl(url)) {
+                    // debugger;
+
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    var opt = {
+                        replace: parent.getAttribute("data-replace") || false,
+                    }
+
+                    redirect(url, opt);
+                }
+                return;
+            } else {
+                parent = parent.parentNode;
             }
         }
     }
 
-    function getCurrentPageUrl() {
-        var href = window.location.href;
-        return href;
+    /**
+     * 检查元素是否匹配选择器
+     * @param  {HTMLElement} element
+     * @param  {String} selector 选择器规则
+     * @return {boolean}
+     */
+
+    function matchSelector(element, selector) {
+        if (!element || element.nodeType !== 1) {
+            return false
+        }
+
+        var parent,
+            match,
+            matchesSelector = element.webkitMatchesSelector || element.matchesSelector;
+
+        if (matchesSelector) {
+            match = matchesSelector.call(element, selector)
+        } else {
+            parent = element.parentNode;
+            match = !! parent.querySelector(selector);
+        }
+
+        return match;
     }
 
-    function getUrlWithoutHash(url) {
-        var href = url;
-        if (href.indexOf('#') !== -1) {
-            href = href.substr(0, href.indexOf('#'));
+    /**
+     * 验证URL是否符合validate规则
+     * @param  {string} url
+     * @return {boolean}
+     */
+
+    function validateUrl(url) {
+        var validate = appOptions.validate,
+            type = Object.prototype.toString.call(validate);
+
+        if (type === "[object RegExp]") {
+            return validate.test(url);
+        } else if (type === "[object Function]") {
+            return validate(url);
+        } else {
+            return true;
         }
-        return href;
+    }
+
+    /**
+     * 获取url的pathname 和 query部分
+     * @param  {String} url
+     * @return {String}     返回url的pathname 和 query部分
+     */
+
+    function getUrl(url) {
+        if (urlReg.test(url)) {
+            return RegExp.$2 + (RegExp.$3 ? "?" + RegExp.$3 : "");
+        } else {
+            "console" in window && console.error("[url error]:", url);
+        }
+
+    }
+
+    /**
+     * 获取当前的url
+     * @return {String} 获取当前url
+     */
+
+    function getCurrentUrl() {
+        return getUrl(window.location.href)
     }
 
     /**
      * 跳转页面
-     * @param url
-     * @param options
+     * @param {String} url      目标页面的url
+     * @param {Object} options  跳转配置参数
+     * @param {Array|String} options[pagelets]  请求的pagelets
+     * @param {String} options[containerId]  pagelets渲染容器
+     * @param {Boolean} options[trigger]  是否触发加载
+     * @param {Boolean} options[forword]  是否替换URL
+     * @param {Boolean} options[replace]  是否替换当前历史记录
+     * @param {HTMLElement} options[target]  触发跳转的DOM元素
      */
+
     function redirect(url, options) {
-        url = getUrlWithoutHash(url);
-        var default_options = {
-            pagelets: [],
-            containerId: null,
-            referer: getCurrentPageUrl(),
-            forword: true,
-            replace: false
-        };
-        options = merge(default_options, options);
-        if (window.history.pushState) {
-            if (options.forword) {
-                if (options.replace) {
-                    window.history.replaceState(options, null, url);
-                } else {
-                    window.history.pushState(options, null, url);
-                }
-            }
+
+        console.log("redirect", url, options);
+
+        url = getUrl(url);
+        var method,
+            defaultOptions = {
+                trigger: true,
+                forword: true,
+                replace: false
+            },
+            eventsOptions = {
+                url : url
+            },
+            opt = {};
+
+
+        options = merge(defaultOptions, options);
+        eventsOptions.target = options.target || null;
+        debugger;
+        if (!isPushState) {
+            options.replace ? (location.href = url) : (location.replace(url));
+            return;
         }
 
-        if (options.pagelets.length > 0) {
-            var pagelets = [];
-            for (var i = 0, len = options.pagelets.length; i < len; i++) {
-                pagelets.push('pagelets[]=' + options.pagelets[i]);
-            }
-            url = (url.indexOf('?') == -1) ? url + '?' + pagelets.join('&') : url + '&' + pagelets.join('&');
-        }
-        var now = (new Date()).getTime();
-        if (cache[url] && now - cache[url].time <= cacheMaxTime) {
-            BigPipe.onPagelets(cache[url]['resource'], options.containerId);
-        } else {
-            delete cache[url];
-            BigPipe.refresh(url, options.containerId);
-        }
-    }
-
-    function start() {
-        var body = document.getElementsByTagName('body')[0];
-        if (!body) {
-            console || console.error("no element: 'body'!");
-        }
-
-        body.addEventListener('click', proxy, false);
-    }
-
-    function onPageRenderStart(obj) {
         //page render start
-        trigger('onPageRenderStart');
+        trigger('onPageRenderStart' , eventsOptions);
+
+        // 之所以放在页面回调中替换历史记录，是因为在移动端低网速下
+        // 有可能后续页面没有在下一次用户操作前返回，而造成添加无效历史记录的问题
+        fetchPage(url,function(){
+            if (options.forword) {
+                method = options.replace ? "replaceState" : "pushState";
+                window.history[method](options, document.title, url);
+            }
+        });
     }
 
-    function onPageRendered(obj) {
-        if (cache[obj.url]) {
-            cache[obj.url] = {
-                resource: obj.resource,
-                time: (new Date()).getTime()
-            };
+    function fetchPage (url,callback){
+        if(!url) {
+            return;
         }
-        //page render end
-        trigger('onPageRenderComplete')
+        var now = Date.now(),
+            pageletsParams = [],
+            containerId = appOptions.containerId,
+            pagelets = appOptions.pagelets;
+
+        if(typeof pagelets === "string" ) {
+            pagelets = [pagelets]
+        }
+
+        curPageUrl = url;
+
+        if (pagelets.length > 0) {
+            for (var i = 0, len = pagelets.length; i < len; i++) {
+                pageletsParams.push('pagelets[]=' + pagelets[i]);
+            }
+            url = (url.indexOf('?') == -1) ? url + '?' + pageletsParams.join('&') : url + '&' + pageletsParams.join('&');
+        }
+
+        console.log("%ccache", "font-size:16px;", cache);
+
+        BigPipe.refresh(url, containerId, function(){
+            callback && callback();
+        })
     }
 
     // -------------------- 事件队列 --------------------
     var SLICE = [].slice;
     var events = {};
 
-    function trigger(type /* args... */) {
+    function trigger(type /* args... */ ) {
         var list = events[type];
         if (!list) {
             return;
         }
 
         var arg = SLICE.call(arguments, 1);
-        for(var i = 0, j = list.length; i < j; i++) {
+        for (var i = 0, j = list.length; i < j; i++) {
             var cb = list[i];
             if (cb.f.apply(cb.o, arg) === false) {
                 break;
@@ -168,15 +317,21 @@ var App = function() {
 
     function on(type, listener, context) {
         var queue = events[type] || (events[type] = []);
-        queue.push({f: listener, o: context});
+        queue.push({
+            f: listener,
+            o: context
+        });
     }
 
-    return {
-        init: init,
+    exports.appPage = {
         start: start,
         redirect: redirect,
-
-        on: on,
-        trigger: trigger
+        on: on
     };
-}();
+
+    // 模块化支持
+    if ("define" in window && typeof module != "undefined") {
+        module.exports = exports.appPage
+    }
+
+})(this);
