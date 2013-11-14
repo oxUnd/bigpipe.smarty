@@ -49,11 +49,17 @@ $ cd lazyrender
 
 第三步，使用安装的[fis-plus][0]编译发布项目
 
+BigPipe
+
 ```
 $ fisp release -cmpr common
 $ fisp release -cmpr index
 ```
 
+LazyRender
+```
+$ fisp release -cmp
+```
 第四步，启动开发服务器
 
 ```
@@ -70,7 +76,7 @@ $ fisp server install pc
 
 BigPipe: [http://127.0.0.1:8080/index/page/index]()
 
-LazyLoad: [http://127.0.0.1:8080/pagelet/page/index]()
+LazyRender: [http://127.0.0.1:8080/pagelet/page/index]()
 
 
 [0]: https://github.com/xiangshouding/bigpipe.smarty.git "BigPipe.smarty"
