@@ -122,7 +122,7 @@ var BigPipe = function() {
             cb();
 
             if (js) {
-                LazyLoad.js(rm.js, function() {
+                LazyLoad.js(js, function() {
                     recordLoaded(js);
                     rm.script && window.eval(rm.script);
                 });
@@ -248,8 +248,10 @@ var BigPipe = function() {
             args.push('pagelets[]=' + id);
         }
 
+        param = param ? '&' + param : '';
+
         var url = location.href.split('#')[0] +
-            (location.search? '&' : '?') + args.join('&') + '&' +param;
+            (location.search ? '&' : '?') + args.join('&') + param;
 
         // 异步请求pagelets
         ajax(url, function(res) {

@@ -1,0 +1,6 @@
+[submodule "single/common/plugin"]
+	path = single/common/plugin
+	url = https://github.com/xiangshouding/fis-smarty-bigpipe-plugin.git
+[submodule "lazyrender/plugin"]
+	path = lazyrender/plugin
+	url = https://github.com/xiangshouding/fis-smarty-bigpipe-plugin.git

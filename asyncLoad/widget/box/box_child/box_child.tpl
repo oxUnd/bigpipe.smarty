@@ -1,3 +1,0 @@
-<p>
-    box child
-</p>
