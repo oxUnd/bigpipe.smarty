@@ -49,7 +49,7 @@
         // 处理history.back事件
         window.addEventListener('popstate', onPopState, false);
         // 全局接管指定元素点击事件
-        document.body.addEventListener('click', proxy, true);
+        document.body.addEventListener('click', proxy, false);
         // bigpipe回调事件
         BigPipe.on('pagerendercomplete', onPagerendered, this); // 执行完页面的ready函数后触发
     }
@@ -69,9 +69,7 @@
         if (!curPageUrl || currentUrl === curPageUrl) {
             return;
         }
-
-        fetchPage(currentUrl);
-
+        fetchPage(currentUrl, e.state);
     }
 
     /**
@@ -137,6 +135,8 @@
 
                     var opt = {
                         replace: parent.getAttribute("data-replace") || false,
+                        containerId: parent.getAttribute("data-area"),
+                        pagelets: parent.getAttribute("data-area")
                     }
 
                     redirect(url, opt);
@@ -239,8 +239,7 @@
             },
             eventsOptions = {
                 url : url
-            },
-            opt = {};
+            };
 
 
         options = merge(defaultOptions, options);
@@ -255,7 +254,7 @@
 
         // 之所以放在页面回调中替换历史记录，是因为在移动端低网速下
         // 有可能后续页面没有在下一次用户操作前返回，而造成添加无效历史记录的问题
-        fetchPage(url,function(){
+        fetchPage(url, options, function(){
             if (options.forword) {
                 method = options.replace ? "replaceState" : "pushState";
                 window.history[method](options, document.title, url);
@@ -263,14 +262,14 @@
         });
     }
 
-    function fetchPage (url,callback){
+    function fetchPage (url, options, callback){
         if(!url) {
             return;
         }
         var now = Date.now(),
             pageletsParams = [],
-            containerId = appOptions.containerId,
-            pagelets = appOptions.pagelets;
+            containerId = options.containerId ? options.containerId : appOptions.containerId,
+            pagelets = options.pagelets ? options.pagelets : appOptions.pagelets;
 
         if(typeof pagelets === "string" ) {
             pagelets = [pagelets]
