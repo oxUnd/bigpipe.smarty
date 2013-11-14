@@ -29,10 +29,22 @@ $ npm install -g fis-plus
 
 ```bash
 $ git clone https://github.com/xiangshouding/bigpipe.smarty.git
-$ cd bigpipe.smarty/single
+$ cd bigpipe.smarty
 $ git submodule init
 $ git submodule update
 ```
+
+BigPipe
+```
+$ cd single
+```
+
+LazyRender
+
+```bash
+$ cd lazyrender
+```
+
 我想你有必要了解一下[git submodule](http://git-scm.com/book/en/Git-Tools-Submodules)
 
 第三步，使用安装的[fis-plus][0]编译发布项目
@@ -54,7 +66,11 @@ $ fisp server start
 $ fisp server install pc
 ```
 
-第六步，打开浏览器访问[http://127.0.0.1:8080/index/page/index]()
+第六步，打开浏览器访问
+
+BigPipe: [http://127.0.0.1:8080/index/page/index]()
+
+LazyLoad: [http://127.0.0.1:8080/pagelet/page/index]()
 
 
 [0]: https://github.com/xiangshouding/bigpipe.smarty.git "BigPipe.smarty"
