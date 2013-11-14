@@ -184,6 +184,8 @@ class FISResource {
 
                 if (!empty($arrRes['pkg'])) {
                     $arrResourceMap['res'][$id]['pkg'] = $arrRes['pkg'];
+                    //如果包含到了某一个包，则模块的url是多余的
+                    unset($arrResourceMap['res'][$id]['url']);
                 }
 
                 if (!empty($deps)) {
