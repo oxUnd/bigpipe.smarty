@@ -63,12 +63,12 @@
 
     function onPopState(e) {
 
-        var currentUrl = getCurrentUrl(),
-            pageUrl;
+        var currentUrl = getCurrentUrl();
 
         if (!curPageUrl || currentUrl === curPageUrl) {
             return;
         }
+
         fetchPage(currentUrl, e.state);
     }
 

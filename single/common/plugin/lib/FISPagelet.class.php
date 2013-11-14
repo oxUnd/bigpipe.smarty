@@ -51,8 +51,20 @@ class FISPagelet {
     static public $cp;
     static public $arrEmbeded = array();
 
-    static public function init() {
-        self::$default_mode = self::MODE_BIGPIPE;
+    /**
+     * 设置渲染模式及其需要渲染的widget
+     * @param $default_mode string 设置默认渲染模式
+     */
+    static public function init($default_mode) {
+        if (is_string($default_mode)
+            && in_array(
+                self::_parseMode($default_mode),
+                array(self::MODE_BIGPIPE, self::MODE_NOSCRIPT))
+        ) {
+            self::$default_mode = self::_parseMode($default_mode);
+        } else {
+            self::$default_mode = self::MODE_NOSCRIPT;
+        }
         $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH'])
             && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
         if ($is_ajax) {

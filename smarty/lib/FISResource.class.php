@@ -202,15 +202,18 @@ class FISResource {
     //获取命名空间的map.json
     public static function register($strNamespace, $smarty){
         if($strNamespace === '__global__'){
-            $strMapName = 'map.json';
+            $strMapName = 'map';
         } else {
-            $strMapName = $strNamespace . '-map.json';
+            $strMapName = $strNamespace . '-map';
         }
         $arrConfigDir = $smarty->getConfigDir();
         foreach ($arrConfigDir as $strDir) {
             $strPath = preg_replace('/[\\/\\\\]+/', '/', $strDir . '/' . $strMapName);
-            if(is_file($strPath)){
-                self::$arrMap[$strNamespace] = json_decode(file_get_contents($strPath), true);
+            if(is_file($strPath . '.php')){
+                self::$arrMap[$strNamespace] = require($strPath . '.php');
+                return true;
+            } else if (is_file($strPath . '.json')) {
+                self::$arrMap[$strNamespace] = json_decode(file_get_contents($strPath . '.json'), true);
                 return true;
             }
         }

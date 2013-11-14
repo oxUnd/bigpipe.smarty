@@ -1,4 +1,4 @@
-{%html framework="common:static/lib/js/mod.js"%}
+{%html framework="common:static/lib/js/mod.js" mode="bigpipe"%}
 {%head%}
     {%title%}{%$title%}{%/title%}
     <meta charset="utf-8" />
