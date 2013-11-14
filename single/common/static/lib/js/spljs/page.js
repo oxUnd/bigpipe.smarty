@@ -5,7 +5,7 @@
         appOptions = {},    // app页面管理的options
         curPageUrl,
         isPushState,
-        urlReg = /(http[s]?:\/\/.*?)?(\/.*?)(\?.*?)?(#.*?)?$/i;
+        urlReg = /^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/i;
 
     /**
      * 启动页面管理
@@ -201,7 +201,7 @@
 
     function getUrl(url) {
         if (urlReg.test(url)) {
-            return RegExp.$2 + (RegExp.$3 ? "?" + RegExp.$3 : "");
+            return RegExp.$5 + (RegExp.$6 ? RegExp.$6 : "");
         } else {
             "console" in window && console.error("[url error]:", url);
         }
@@ -230,9 +230,6 @@
      */
 
     function redirect(url, options) {
-
-        console.log("redirect", url, options);
-
         url = getUrl(url);
         var method,
             defaultOptions = {
@@ -248,7 +245,6 @@
 
         options = merge(defaultOptions, options);
         eventsOptions.target = options.target || null;
-        debugger;
         if (!isPushState) {
             options.replace ? (location.href = url) : (location.replace(url));
             return;
@@ -288,8 +284,6 @@
             }
             url = (url.indexOf('?') == -1) ? url + '?' + pageletsParams.join('&') : url + '&' + pageletsParams.join('&');
         }
-
-        console.log("%ccache", "font-size:16px;", cache);
 
         BigPipe.refresh(url, containerId, function(){
             callback && callback();
