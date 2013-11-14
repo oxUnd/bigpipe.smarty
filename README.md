@@ -30,7 +30,10 @@ $ npm install -g fis-plus
 ```bash
 $ git clone https://github.com/xiangshouding/bigpipe.smarty.git
 $ cd bigpipe.smarty/single
+$ git submodule init
+$ git submodule update
 ```
+我想你有必要了解一下[git submodule](http://git-scm.com/book/en/Git-Tools-Submodules)
 
 第三步，使用安装的[fis-plus][0]编译发布项目
 
