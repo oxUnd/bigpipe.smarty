@@ -1,4 +1,4 @@
-{%html framework="common:static/lib/js/mod-store.js"%}
+{%html framework="common:static/lib/js/mod.js"%}
 {%head%}
     {%title%}{%$title%}{%/title%}
     <meta charset="utf-8" />
@@ -9,39 +9,10 @@
     {%require name="common:static/css/layout.css"%}
     {%require name="common:static/lib/js/spljs/page.js"%}
     {%script%}
-        App.init({
-            enableProxy: function(event) {
-                var cls = ['message-item'];
-                var tags = ['A'];
-                function matchClassName(elm) {
-                    for (var i = 0, len = cls.length; i < len; i++) {
-                        if (elm.className && elm.className.indexOf(cls[i]) != -1) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-
-                function matchTagName(elm) {
-                    for (var i = 0, len = tags.length; i < len; i++) {
-                        if (elm.tagName == tags[i]) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                return matchTagName(event.target) || matchClassName(event.target);
-            }
+        appPage.start({
+            containerId: 'pager',
+            pagelets: 'pager'
         });
-        App.on('onPageRenderStart', function() {
-            console.log('Page Start', (new Date()).getTime());
-        });
-
-        App.on('onPageRenderComplete', function() {
-            console.log('Page End', (new Date()).getTime());
-        });
-
-        App.start();
     {%/script%}
 {%/head%}
 
@@ -56,7 +27,7 @@
 
                 <div class="pure-menu pure-menu-open">
                     <ul>
-                        <li><a data-href="/index/page/index" data-area="pager">Inbox <span class="email-count">(2)</span></a></li>
+                        <li><a href="/index/page/index">Inbox <span class="email-count">(2)</span></a></li>
                         <li><a href="#">Important</a></li>
                         <li><a href="#">Sent</a></li>
                         <li><a href="#">Drafts</a></li>
