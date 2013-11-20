@@ -245,9 +245,13 @@ appPage.start(
 );
 ```
 在这个设定下，A页面 -> B页面
+
+
+
 | A 			  | B 				|
 |:----------------|:----------------|
-{%widget name="xxxx" pagelet_id="pager"%} 	| {%widget name="oooo" pagelet_id="pager"%}
+| {%widget name="xxxx" pagelet_id="pager"%} | {%widget name="oooo" pagelet_id="pager"%}|
+
 
 两个都有相同的pagelet_id的widget，整页切换。
 
