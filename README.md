@@ -238,8 +238,8 @@ OK，感谢[@donny](https://github.com/doith) 同学，跟我一起搞两个页�
 
 ```javascript
 appPage.start(
-	containerId: 'pager',   //局部页面请求回来安放的位置
-	pagelets: 'pager',  	//局部页面请求的widget or widget_block
+	containerId: 'pager',   //pagelets渲染容器
+	pagelets: 'pager',  	//请求的pagelet
 	validateUrl: /.*/i, 	//符合这个规则的链接或者带data-href属性的元素进行事件代理
 	cacheMaxTime: 1000		//每一个pagelet的缓存时间，视访问情况而定。
 );
@@ -281,6 +281,17 @@ appPage.start(
 
 ###### appPage.redirect()
 
+```javascript
+appPage.redirect(
+	"/index/page/index",
+	{
+		"pagelets": "test"     // 需要请求的pagelet
+		"containerId": "xxx"   // pagelet渲染的容器
+	}
+);
+```
+
+如果还有一些小的pagelet（widget）没有考虑到，可以用这个接口做加载。
 
 
 [0]: https://github.com/xiangshouding/bigpipe.smarty "BigPipe.smarty"
