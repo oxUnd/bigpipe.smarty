@@ -148,14 +148,39 @@ demo中就简单粗暴的执行了它。执行完成后，会发起一个异步�
 ```
 http://127.0.0.1:8080/pagelet/page/index?pagelets[]=second&t=858607
 ```
-可以看出本次请求的是一个`pagelet_id = 'second'`的widget。
+表示请求的是一个`pagelet_id = 'second'`的widget。
 
 pagelets是个数组，可以一次请求多个widget。
 
 到这里，你应该知道怎么用及整个执行过程了。恭喜，你又知道了一个延迟加载的方法。想快速
 使用这个方案，那就用FIS改造你的项目吧。
 
+上面提到一次请求多个widget，那该如何处理呢。FIS提供了组(`group`)的概念
 
+只需要添加group属性即可；
+
+```smarty
+{%widget name="a.tpl" mode="quickling" pagelet_id="a" group="A"%}
+{%widget name="b.tpl" mode="quickling" pagelet_id="b" group="B"%}
+{%widget name="a1.tpl" mode="quickling" pagelet_id="a1" group="A"%}
+```
+
+在渲染时a + a1会发起一个请求，b发起一个请求。
+
+添加group以后输出的源码是什么样子的？
+
+```html
+<textarea class="g_fis_bigrender g_fis_bigrender_a" style="display: none">BigPipe.asyncLoad([{id: "second"},{id:"third"}])</textarea><div id="second"></div><div id="third"></div>
+```
+追加了class `g_fis_bigrender_a`，为了更好的适应不同用户需求。
+
+看看发起的请求；
+
+```
+http://127.0.0.1:8080/pagelet/page/index?pagelets[]=third&pagelets[]=second&force_mode=1&t=915745
+```
+
+---------
 
 [0]: https://github.com/xiangshouding/bigpipe.smarty "BigPipe.smarty"
 [1]: https://github.com/xiangshouding/fis-smarty-bigpipe-plugin "quickling plugin"
