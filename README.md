@@ -182,8 +182,106 @@ http://127.0.0.1:8080/pagelet/page/index?pagelets[]=third&pagelets[]=second&forc
 
 ---------
 
+**局部刷新**
+
+首先，你得拥有一个FIS-PLUS的项目；可以下载我提供的demo。
+
+其次，你得使用[Quickling解决方案的插件][1]，引入[前端loader][5] （跟上面提到有所不同，这个相对于大一些），[modjs][3]保持最新，[前端loader][2]依赖[lazyload.js][4]
+
+```smarty
+{%html framework="common:static/lib/js/mod.js"%}
+    {%head%}
+    	...
+        {%require name="common:static/lib/js/lazyload.js"%}
+        {%require name="common:static/lib/js/BigPipe.js%}
+        ...
+    {%/head%}
+    {%body%}
+    	...
+    {%/body%}
+{%/html%}
+```
+
+最后，发布这个项目；访问对应URL查看页面。如果你使用的是demo[single]，那么现在就可以看到效果了。如果是你自己的项目，你会发现啥反应也没有。
+
+`局部刷新` 中FIS提供了一个可被异步请求的`后端框架`(以[smarty插件][0]的方式)；
+[前端loader][5]。
+
+前端loader提供接口`fetch`方法，来异步请求渲染一个widget。
+
+```javascript
+BigPipe.fetch(url, containerId);
+```
+
+例子
+
+```javascript
+BigPipe.fetch('/index/page/index?pagelets[]="pager"', 'pager');
+```
+表示请求`paglet_id="pager"`的widget，并把它渲染到页面的`<div id="pager"></div>`
+内。
+
+So，这个接口提供了异步请求渲染一个widget的能力。这样就可以实现局刷了。
+
+但但但是，这个似乎用着实在太不顺手了。在前端需要考虑很多。
+
+OK，感谢[@donny](https://github.com/doith) 同学，跟我一起搞两个页面管理的前端库[page.js](https://github.com/xiangshouding/bigpipe.smarty/blob/master/single/common/static/lib/js/spljs/page.js)
+
+**page.js**
+
++ 事件代理，代理需要局刷的URL, 绑定异步接口;
++ 前进后退控制， 使用pushState
+
+提供接口
+
+###### appPage.start()
+
+```javascript
+appPage.start(
+	containerId: 'pager',   //局部页面请求回来安放的位置
+	pagelets: 'pager',  	//局部页面请求的widget or widget_block
+	validateUrl: /.*/i, 	//符合这个规则的链接或者带data-href属性的元素进行事件代理
+	cacheMaxTime: 1000		//每一个pagelet的缓存时间，视访问情况而定。
+);
+```
+在这个设定下，A页面 -> B页面
+| A 			  | B 				|
+|:----------------|:----------------|
+{%widget name="xxxx" pagelet_id="pager"%} 	| {%widget name="oooo" pagelet_id="pager"%}
+
+两个都有相同的pagelet_id的widget，整页切换。
+
+当然我们提供了`widget_block`来搞定这类问题。只需要在layout里面使用widget_block
+其他页面extends即可。
+
+```smarty
+{%widget_block pagelet_id="pager"%}
+	{%block name="body"%}
+{%/widget_block%}
+```
+
+整个页面就这样切换起来了。
+
+如果更新小范围的内容该如何办？
+
++ 只需在触发元素上添加`data-area`属性，
+
+
+如;
+
+```html
+<a href="/xxxxx" data-area="left-bar">A</a>
+```
+
+当点击时回请求页面的`pagelet_id="left-bar"`的widget，并渲染到当前页面的`<div id="left-bar"></div>`内。
+
+###### appPage.redirect()
+
+
+
 [0]: https://github.com/xiangshouding/bigpipe.smarty "BigPipe.smarty"
 [1]: https://github.com/xiangshouding/fis-smarty-bigpipe-plugin "quickling plugin"
 [2]: https://github.com/xiangshouding/bigpipe.smarty/blob/master/lazyrender/static/BigPipe.js "loader"
 [3]: https://github.com/zjcqoo/mod "modjs"
 [4]: https://github.com/xiangshouding/bigpipe.smarty/blob/master/lazyrender/static/lazyload.js "lazyload.js"
+[5]: https://github.com/xiangshouding/bigpipe.smarty/blob/master/single/common/static/lib/js/BigPipe.js "loader"
