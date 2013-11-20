@@ -193,7 +193,7 @@ http://127.0.0.1:8080/pagelet/page/index?pagelets[]=third&pagelets[]=second&forc
     {%head%}
     	...
         {%require name="common:static/lib/js/lazyload.js"%}
-        {%require name="common:static/lib/js/BigPipe.js%}
+        {%require name="common:static/lib/js/BigPipe.js"%}
         ...
     {%/head%}
     {%body%}
