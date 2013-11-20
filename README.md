@@ -111,7 +111,7 @@ ok，到现在都看到了一个比较简单的例子，当然看着这个例子
 最后，发布这个项目；访问对应URL查看页面。
 
 
-现在洗洗看一下`asyncrender/page/index.tpl`
+现在看一下`asyncrender/page/index.tpl`
 
 有些widget添加了属性`pagelet_id` 和 `mode`
 
@@ -260,7 +260,7 @@ appPage.start(
 
 ```smarty
 {%widget_block pagelet_id="pager"%}
-	{%block name="body"%}
+	{%block name="body"%}{%/block%}
 {%/widget_block%}
 ```
 
