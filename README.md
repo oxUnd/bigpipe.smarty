@@ -225,7 +225,7 @@ So，这个接口提供了异步请求渲染一个widget的能力。这样就可
 
 但但但是，这个似乎用着实在太不顺手了。在前端需要考虑很多。
 
-OK，感谢[@donny](https://github.com/doith) 同学，跟我一起搞两个页面管理的前端库[page.js](https://github.com/xiangshouding/bigpipe.smarty/blob/master/single/common/static/lib/js/spljs/page.js)
+OK，跟[@donny](https://github.com/doith) 同学合作写的页面管理的前端库[page.js](https://github.com/xiangshouding/bigpipe.smarty/blob/master/single/common/static/lib/js/spljs/page.js)
 
 **page.js**
 
