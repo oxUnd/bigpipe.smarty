@@ -87,7 +87,7 @@ ok，到现在都看到了一个比较简单的例子，当然看着这个例子
 来阐述具体使用。
 
 ----
-**lazyrender**
+#### **lazyrender**
 
 首先，你得拥有一个FIS-PLUS的项目；可以下载我提供的demo。
 
@@ -182,7 +182,7 @@ http://127.0.0.1:8080/pagelet/page/index?pagelets[]=third&pagelets[]=second&forc
 
 ---------
 
-**局部刷新**
+#### **局部刷新**
 
 首先，你得拥有一个FIS-PLUS的项目；可以下载我提供的demo。
 
@@ -227,7 +227,7 @@ So，这个接口提供了异步请求渲染一个widget的能力。这样就可
 
 OK，跟[@donny](https://github.com/doith) 同学合作写的页面管理的前端库[page.js](https://github.com/xiangshouding/bigpipe.smarty/blob/master/single/common/static/lib/js/spljs/page.js)
 
-**page.js**
+##### **page.js**
 
 + 事件代理，代理需要局刷的URL, 绑定异步接口;
 + 前进后退控制， 使用pushState
