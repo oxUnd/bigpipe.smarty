@@ -293,6 +293,25 @@ appPage.redirect(
 
 如果还有一些小的pagelet（widget）没有考虑到，可以用这个接口做加载。
 
+#### 渲染模式
+
+支持**普通渲染模式**和**pipeline**两种渲染模式。
+
++ 普通渲染模式`noscript`       没有被`pipeline`的渲染模式
++ pipeline渲染模式`pipeline`   如果需要比较完整的支持pagecache，可选择这种模式。
+
+如何设定
+
+```smarty
+{%html ... mode="noscript"%} //noscript mode
+```
+
+or
+
+```smarty
+{%html ... mode="pipeline"%} //pipeline mode
+```
+
 
 [0]: https://github.com/xiangshouding/bigpipe.smarty "BigPipe.smarty"
 [1]: https://github.com/xiangshouding/fis-smarty-bigpipe-plugin "quickling plugin"
