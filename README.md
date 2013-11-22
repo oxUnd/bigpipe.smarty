@@ -309,7 +309,7 @@ appPage.redirect(
 or
 
 ```smarty
-{%html ... mode="pipeline"%} //pipeline mode
+{%html ... mode="bigpipe"%} //pipeline mode
 ```
 
 
