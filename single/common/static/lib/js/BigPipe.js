@@ -39,8 +39,7 @@ var BigPipe = function() {
         //
         var dom = document.getElementById(html_id);
         if (!dom) {
-            return;
-            throw Error('[BigPipe] Cannot find comment `' + html_id + '`');
+            return "";
         }
         var html = dom.firstChild.nodeValue;
         html = html.substring(1, html.length - 1).
@@ -125,10 +124,12 @@ var BigPipe = function() {
                 LazyLoad.js(js, function() {
                     recordLoaded(js);
                     rm.script && window.eval(rm.script);
+                    trigger("onpageloaded");
                 });
             }
             else {
                 rm.script && window.eval(rm.script);
+                trigger("onpageloaded");
             }
         }
 
@@ -192,11 +193,12 @@ var BigPipe = function() {
         });
     }
 
-    function fetch(url, id, callback) {
+    function fetch(url, id, options, callback) {
         //
         // Quickling请求局部
         //
         var currentPageUrl = location.href,
+            options = options || {},
             data;
         containerId = id;
 
@@ -215,7 +217,7 @@ var BigPipe = function() {
         }
 
         // 缓存策略
-        if(isCacheAvailable(url)) {
+        if(isCacheAvailable(url) && options.cache !== false) {
             data = getCachedResource(url);
             success(data);
         } else {
@@ -226,8 +228,8 @@ var BigPipe = function() {
         }
     }
 
-    function refresh(url, id, callback) {
-        fetch(url, id, callback);
+    function refresh(url, id, options, callback) {
+        fetch(url, id, options, callback);
     }
 
     /**
@@ -250,8 +252,7 @@ var BigPipe = function() {
 
         param = param ? '&' + param : '';
 
-        var url = location.href.split('#')[0] +
-            (location.search ? '&' : '?') + args.join('&') + param;
+        var url = location.href.split('#')[0] + '&' + args.join('&') + '&force_mode=1&is_widget=true' +param;
 
         // 异步请求pagelets
         ajax(url, function(res) {
@@ -312,8 +313,8 @@ var BigPipe = function() {
         trigger('pagearrived', pagelets);
 
         process(obj.resource_map, function() {
-            render({trigger:true});
             callback && callback();
+            render({trigger:true});
         });
     }
 

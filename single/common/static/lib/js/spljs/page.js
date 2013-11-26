@@ -5,6 +5,7 @@
         appOptions = {},    // app页面管理的options
         curPageUrl,
         isPushState,
+        layer,              // 事件代理层
         urlReg = /^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/i;
 
     /**
@@ -17,7 +18,7 @@
      */
 
     function start(options) {
-        console.log("start")
+
         /**
          * 默认参数 {
          *     selector : <string> // 代理元素的选择器规则
@@ -27,17 +28,21 @@
         var defaultOptions = {
             selector: "a,[data-href]",
             cacheMaxTime: 5 * 60 * 1000,
-            pushState : true
+            pushState : true,
+            layer : document.body
         };
 
         appOptions = merge(defaultOptions, options);
         cacheMaxTime = appOptions.cacheMaxTime;
         isPushState = appOptions.pushState;
+        layer = getLayer(appOptions.layer);
 
         curPageUrl = getCurrentUrl();
 
-        // 绑定事件
-        bindEvent();
+        if(isPushState === true){
+            // 绑定事件
+            bindEvent();
+        }
     }
 
     /**
@@ -49,9 +54,23 @@
         // 处理history.back事件
         window.addEventListener('popstate', onPopState, false);
         // 全局接管指定元素点击事件
-        document.body.addEventListener('click', proxy, false);
+        layer.addEventListener('click', proxy, true);
         // bigpipe回调事件
         BigPipe.on('pagerendercomplete', onPagerendered, this); // 执行完页面的ready函数后触发
+
+        BigPipe.on('pagearrived', onPageArrived, this); // 执行完页面的ready函数后触发
+        BigPipe.on('onpageloaded', onPageLoaded, this); // 执行完页面的ready函数后触发
+    }
+
+    function getLayer(ele) {
+        if(typeof ele === "string") {
+            return document.querySelector(ele);
+        } else if (ele && ele.nodeType) {
+            return ele;
+        } else {
+            return document.body
+        }
+
     }
 
 
@@ -83,13 +102,20 @@
             resource: obj.resource,
             time: Date.now()
         };
-        console.log("%cregister cache", "color:red;font-size:16px;", cache);
+
         //page render end
-        trigger('onPageRenderComplete',{
+        trigger('onpagerendercomplete',{
             url : obj.url
         });
     }
 
+    function onPageArrived(){
+        trigger('onpagearrived');
+    }
+
+    function onPageLoaded() {
+        trigger('onpageloaded');
+    }
 
     /**
      * 简单merge两个对象
@@ -117,7 +143,6 @@
             parent = element,
             selector = appOptions.selector;
 
-        console.log("proxy", element, e);
 
         while (parent !== document.body) {
 
@@ -128,7 +153,6 @@
 
                 // 验证url, 可以自行配置url验证规则
                 if (validateUrl(url)) {
-                    // debugger;
 
                     e.stopPropagation();
                     e.preventDefault();
@@ -136,7 +160,8 @@
                     var opt = {
                         replace: parent.getAttribute("data-replace") || false,
                         containerId: parent.getAttribute("data-area"),
-                        pagelets: parent.getAttribute("data-area")
+                        pagelets: parent.getAttribute("data-area"),
+                        target : parent
                     }
 
                     redirect(url, opt);
@@ -231,6 +256,12 @@
 
     function redirect(url, options) {
         url = getUrl(url);
+
+        // 如果url不变则不加载
+        if(getCurrentUrl() === url) {
+            return;
+        }
+
         var method,
             defaultOptions = {
                 trigger: true,
@@ -244,20 +275,29 @@
 
         options = merge(defaultOptions, options);
         eventsOptions.target = options.target || null;
+        // tirgger 状态不进行页面获取，只切换URL
+        if(options.trigger === false) {
+            if(isPushState) {
+                method = options.replace ? "replaceState" : "pushState";
+                window.history[method]({}, document.title, url);
+            }
+            return;
+        }
+
         if (!isPushState) {
-            options.replace ? (location.href = url) : (location.replace(url));
+            options.replace ? (location.replace(url)) : (location.href = url);
             return;
         }
 
         //page render start
-        trigger('onPageRenderStart' , eventsOptions);
+        trigger('onpagerenderstart' , eventsOptions);
 
         // 之所以放在页面回调中替换历史记录，是因为在移动端低网速下
         // 有可能后续页面没有在下一次用户操作前返回，而造成添加无效历史记录的问题
         fetchPage(url, options, function(){
             if (options.forword) {
                 method = options.replace ? "replaceState" : "pushState";
-                window.history[method](options, document.title, url);
+                window.history[method]({}, document.title, url);
             }
         });
     }
@@ -267,7 +307,9 @@
             return;
         }
         var now = Date.now(),
+            options = options || {},
             pageletsParams = [],
+            opt = {},
             containerId = options.containerId ? options.containerId : appOptions.containerId,
             pagelets = options.pagelets ? options.pagelets : appOptions.pagelets;
 
@@ -281,10 +323,12 @@
             for (var i = 0, len = pagelets.length; i < len; i++) {
                 pageletsParams.push('pagelets[]=' + pagelets[i]);
             }
-            url = (url.indexOf('?') == -1) ? url + '?' + pageletsParams.join('&') : url + '&' + pageletsParams.join('&');
+            url = (url.indexOf('?') == -1) ? url + '/?' + pageletsParams.join('&') : url + '&' + pageletsParams.join('&');
         }
 
-        BigPipe.refresh(url, containerId, function(){
+        (options.cache === false) && (opt.cache = false);
+
+        BigPipe.refresh(url, containerId, opt, function(){
             callback && callback();
         })
     }
