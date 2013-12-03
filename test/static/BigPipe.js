@@ -27,8 +27,8 @@ var BigPipe = function() {
         var xhr = new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP");
 
         xhr.onreadystatechange = function() {
-            if (this.readyState == 4) {
-                cb(this.responseText);
+            if (xhr.readyState == 4) {
+                cb(xhr.responseText);
             }
         };
         xhr.open(data?'POST':'GET', url + '&t=' + ~~(Math.random() * 1e6), true);
