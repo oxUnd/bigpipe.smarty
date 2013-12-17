@@ -58,8 +58,11 @@
         // bigpipe回调事件
         BigPipe.on('pagerendercomplete', onPagerendered, this); // 执行完页面的ready函数后触发
 
-        BigPipe.on('pagearrived', onPageArrived, this); // 执行完页面的ready函数后触发
-        BigPipe.on('onpageloaded', onPageLoaded, this); // 执行完页面的ready函数后触发
+        // 页面数据到达的时候派发事件
+        BigPipe.on('pagearrived', onPageArrived, this); 
+
+        // 页面内所有的样式JS都被加载完成后触发
+        BigPipe.on('onpageloaded', onPageLoaded, this); 
     }
 
     function getLayer(ele) {
@@ -88,6 +91,7 @@
             return;
         }
 
+        trigger('onpagerenderstart');
         fetchPage(currentUrl, e.state);
     }
 
@@ -109,8 +113,8 @@
         });
     }
 
-    function onPageArrived(){
-        trigger('onpagearrived');
+    function onPageArrived(options){
+        trigger('onpagearrived',options);
     }
 
     function onPageLoaded() {
@@ -323,7 +327,7 @@
             for (var i = 0, len = pagelets.length; i < len; i++) {
                 pageletsParams.push('pagelets[]=' + pagelets[i]);
             }
-            url = (url.indexOf('?') == -1) ? url + '/?' + pageletsParams.join('&') : url + '&' + pageletsParams.join('&');
+            url = (url.indexOf('?') === -1) ? url + '/?' + pageletsParams.join('&') : url + '&' + pageletsParams.join('&');
         }
 
         (options.cache === false) && (opt.cache = false);

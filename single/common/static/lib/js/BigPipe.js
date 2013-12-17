@@ -8,6 +8,11 @@ var BigPipe = function() {
         resource,
         resourceCache = {},
         onReady,
+        initiatorType = {
+            LANDING     : 0,        // 发起者类型
+            QUICKLING   : 1,
+            FROM_CACHE  : 2
+        },
         LOADED = 1,
         cacheMaxTime = 5 * 60 * 1000;
 
@@ -20,8 +25,8 @@ var BigPipe = function() {
         var xhr = new (window.XMLHttpRequest || ActiveXObject)("Microsoft.XMLHTTP");
 
         xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4) {
-                cb(xhr.responseText);
+            if (this.readyState == 4) {
+                cb(this.responseText);
             }
         };
         xhr.open(data?'POST':'GET', url + '&t=' + ~~(Math.random() * 1e6), true);
@@ -199,10 +204,11 @@ var BigPipe = function() {
         //
         var currentPageUrl = location.href,
             options = options || {},
+            eventOptions = {},
             data;
         containerId = id;
 
-        var success = function(data){
+        var success = function(data, opts){
             // 如果数据返回回来前，发生切页，则不再处理，否则当前页面有可能被干掉
             if(currentPageUrl !== location.href) {
                 return;
@@ -212,6 +218,10 @@ var BigPipe = function() {
                 pageUrl = url;
                 var json = parseJSON(data);
                 resource = json;
+
+                // 处理前派发页面到达事件
+                trigger('pagearrived', opts);
+
                 onPagelets(json, id, callback);
             }
         }
@@ -219,11 +229,16 @@ var BigPipe = function() {
         // 缓存策略
         if(isCacheAvailable(url) && options.cache !== false) {
             data = getCachedResource(url);
-            success(data);
+            // initiator标识发起者参数
+            eventOptions.initiator = initiatorType.FROM_CACHE;
+            success(data, eventOptions);
+            // 统计URL
+            statRecord(url);
         } else {
             ajax(url, function(data){
+                eventOptions.initiator = initiatorType.QUICKLING;
                 addResourceToCache(url,data);
-                success(data);
+                success(data, eventOptions);
             });
         }
     }
@@ -271,6 +286,20 @@ var BigPipe = function() {
         });
     }
 
+    /**
+     * 记录统计
+     * @param  {String} url 
+     */
+    function statRecord(url){
+        if(typeof url === "string") {
+            var sep = url.indexOf('?') === -1 ? "/?" : "&";
+            url = url + sep + "pagecache=1";
+            ajax(url,function(res){
+                //console.log("%ccache stat","color:red");
+            });
+        }
+    }
+
     function addResourceToCache(url,resource){
         resourceCache[url] = {
             data : resource,
@@ -310,7 +339,6 @@ var BigPipe = function() {
         container.innerHTML = '';
         pagelets = obj.pagelets;
 
-        trigger('pagearrived', pagelets);
 
         process(obj.resource_map, function() {
             callback && callback();
