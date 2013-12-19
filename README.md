@@ -170,9 +170,9 @@ pagelets是个数组，可以一次请求多个widget。
 添加group以后输出的源码是什么样子的？
 
 ```html
-<textarea class="g_fis_bigrender g_fis_bigrender_a" style="display: none">BigPipe.asyncLoad([{id: "second"},{id:"third"}])</textarea><div id="second"></div><div id="third"></div>
+<textarea class="g_fis_bigrender g_fis_bigrender_A" style="display: none">BigPipe.asyncLoad([{id: "second"},{id:"third"}])</textarea><div id="second"></div><div id="third"></div>
 ```
-追加了class `g_fis_bigrender_a`，为了更好的适应不同用户需求。
+追加了class `g_fis_bigrender_A`，为了更好的适应不同用户需求。
 
 看看发起的请求；
 
