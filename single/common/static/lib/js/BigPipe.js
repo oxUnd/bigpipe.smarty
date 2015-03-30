@@ -386,7 +386,8 @@ var BigPipe = function() {
         asyncLoad: asyncLoad,
         register: register,
         refresh: refresh,
-
+        fetch: fetch,
+        
         onPageReady: onPageReady,
         onPageChange: onPageChange,
 
